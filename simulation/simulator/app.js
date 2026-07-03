@@ -364,6 +364,7 @@ function setupControls() {
     document.getElementById('weightVal').textContent = slider.value;
     document.getElementById('bondVal').textContent = (100 - slider.value) + '%';
     updateWeightDependent();
+    renderSummary();
   });
 
   document.querySelectorAll('#rebalanceGroup .radio-btn').forEach(btn => {
@@ -409,17 +410,74 @@ function computeGridCache() {
   const exitResults = simulateExitLosses(aligned, weightSeries, episodes);
   const agg = aggregateByWeight(exitResults);
 
+  // 기본 선택: 연대순 첫 구간이 아니라 낙폭이 가장 컸던(가장 대표적인) 구간
+  let worstIdx = 0, worstMdd = Infinity;
+  episodes.forEach((e, i) => { if (e.mdd < worstMdd) { worstMdd = e.mdd; worstIdx = i; } });
+  state.selectedEpisode = worstIdx;
+
   cache = { key, aligned, dates, weightSeries, episodes, exitResults, agg };
   return cache;
 }
 
 function update() {
   computeGridCache();
+  renderSummary();
   updateWeightDependent();
   renderH1();
   renderEpisodeTable();
   renderEpisodeChart();
   updateH2();
+}
+
+// ─── 핵심 요약 (100% 채권 vs 100% 주식 vs 혼합) ─────────────────────────────
+function renderSummary() {
+  const { aligned, dates, weightSeries } = cache;
+  const equityOnly = weightSeries[1.0];
+  const bondOnly = weightSeries[0.0];
+  const portfolio = currentPortfolioSeries(state.weight);
+
+  const years = (dates[dates.length - 1] - dates[0]) / 86400000 / 365.25;
+  const cagr = s => Math.pow(s[s.length - 1] / 100, 1 / years) - 1;
+  const mdd = s => Math.min(...rollingDrawdown(s));
+
+  const cagrEq = cagr(equityOnly), cagrBd = cagr(bondOnly), cagrPort = cagr(portfolio);
+  const mddEq = mdd(equityOnly), mddBd = mdd(bondOnly), mddPort = mdd(portfolio);
+
+  const valid = aligned.slice(1);
+  const corr = pearson(valid.map(d => d.equityRet), valid.map(d => d.bondRet)).r;
+
+  document.getElementById('summaryGrid').innerHTML = `
+    <div class="metric-tile">
+      <div class="lbl tip" data-tip="투자기간 전체를 연 단위 복리로 환산한 평균 수익률입니다.">연평균 수익률 (CAGR)</div>
+      <div class="val c-orange" style="font-size:16px">주식 ${fmtPct(cagrEq)}</div>
+      <div class="val c-green" style="font-size:16px;margin-top:2px">채권 ${fmtPct(cagrBd)}</div>
+      <div class="sub">혼합(주식${Math.round(state.weight * 100)}%): ${fmtPct(cagrPort)}</div>
+    </div>
+    <div class="metric-tile">
+      <div class="lbl tip" data-tip="투자기간 중 직전 고점 대비 가장 크게 떨어졌던 낙폭입니다. 그 시점에 팔았다면 이만큼 손실을 봤다는 뜻입니다.">최대낙폭 (MDD)</div>
+      <div class="val c-orange" style="font-size:16px">주식 ${fmtPct(mddEq)}</div>
+      <div class="val c-green" style="font-size:16px;margin-top:2px">채권 ${fmtPct(mddBd)}</div>
+      <div class="sub">혼합(주식${Math.round(state.weight * 100)}%): ${fmtPct(mddPort)}</div>
+    </div>
+    <div class="metric-tile">
+      <div class="lbl tip" data-tip="-1은 완전 반대 방향, 0은 무관, +1은 완전 같은 방향으로 움직인다는 뜻입니다. 전체기간 일별 수익률 기준입니다.">주식-채권 상관계수</div>
+      <div class="val ${corr < 0 ? 'c-green' : 'c-red'}">${corr.toFixed(3)}</div>
+      <div class="sub">${corr < -0.15 ? '약한~중간 음의 상관' : corr < 0 ? '거의 무상관에 가까운 약한 음의 상관' : '양의 상관 (분산효과 약함)'}</div>
+    </div>
+    <div class="metric-tile">
+      <div class="lbl">분석 기간</div>
+      <div class="val">${years.toFixed(1)}년</div>
+      <div class="sub">${fmtDate(dates[0])} ~ ${fmtDate(dates[dates.length - 1])}</div>
+    </div>
+  `;
+
+  document.getElementById('summaryVerdict').innerHTML = `
+    이 기간 동안 <b>100% 주식</b>은 연평균 ${fmtPct(cagrEq)}, <b>100% 채권</b>은 연평균 ${fmtPct(cagrBd)}을 기록했습니다 —
+    주식이 연 ${((cagrEq - cagrBd) * 100).toFixed(1)}%p 더 벌었지만, 그 대가로 최대낙폭은 채권보다 ${((mddEq - mddBd) * -100).toFixed(1)}%p 더 컸습니다.
+    채권을 일부 섞으면(현재 설정: 주식 ${Math.round(state.weight * 100)}%) 낙폭은 ${fmtPct(mddPort - mddEq)}p 완화되는 대신 CAGR은 ${fmtPct(cagrPort - cagrEq)}p 낮아집니다.
+    즉 <b>채권 장기투자 단독으로는 주식보다 수익이 크게 낮지만</b>, 상관계수가 ${corr.toFixed(2)}로 ${corr < 0 ? '약한 음의 값이라 포트폴리오에 섞였을 때 분산 효과(낙폭 완화)를 기대할 수 있는' : '뚜렷한 음의 상관이 아니라 분산 효과가 크지 않을 수 있는'} 자산입니다.
+    아래 H1·H2 섹션에서 그 근거를 구간별로 직접 확인해보세요.
+  `;
 }
 
 function currentPortfolioSeries(weight) {
@@ -443,9 +501,9 @@ function updateWeightDependent() {
   const mddEquity = Math.min(...ddEquity);
 
   document.getElementById('metricsGrid').innerHTML = `
-    <div class="metric-tile"><div class="lbl">연평균 수익률 (CAGR)</div><div class="val c-blue">${fmtPct(cagr)}</div><div class="sub">100% 주식: ${fmtPct(cagrEquity)}</div></div>
-    <div class="metric-tile"><div class="lbl">최대낙폭 (MDD)</div><div class="val c-red">${fmtPct(mdd)}</div><div class="sub">100% 주식: ${fmtPct(mddEquity)}</div></div>
-    <div class="metric-tile"><div class="lbl">낙폭 완화폭</div><div class="val c-green">${fmtPct(mdd - mddEquity)}p</div><div class="sub">100%주식 대비</div></div>
+    <div class="metric-tile"><div class="lbl tip" data-tip="연 단위 복리로 환산한 평균 수익률입니다.">연평균 수익률 (CAGR)</div><div class="val c-blue">${fmtPct(cagr)}</div><div class="sub">100% 주식: ${fmtPct(cagrEquity)}</div></div>
+    <div class="metric-tile"><div class="lbl tip" data-tip="직전 고점 대비 가장 크게 떨어졌던 낙폭입니다.">최대낙폭 (MDD)</div><div class="val c-red">${fmtPct(mdd)}</div><div class="sub">100% 주식: ${fmtPct(mddEquity)}</div></div>
+    <div class="metric-tile"><div class="lbl tip" data-tip="100% 주식 대비 MDD가 얼마나 줄었는지(%포인트)입니다. 양수일수록 낙폭이 더 완화된 것입니다.">낙폭 완화폭</div><div class="val c-green">${fmtPct(mdd - mddEquity)}p</div><div class="sub">100%주식 대비</div></div>
     <div class="metric-tile"><div class="lbl">분석 기간</div><div class="val">${years.toFixed(1)}년</div><div class="sub">${fmtDate(dates[0])} ~ ${fmtDate(dates[dates.length - 1])}</div></div>
   `;
 
@@ -597,8 +655,8 @@ function updateH2() {
   const crisisP = pValueForR(crisis.r, crisis.n);
 
   document.getElementById('corrSummary').innerHTML = `
-    <div class="corr-box"><div class="lbl">전체기간 상관계수</div><div class="val ${full.r < 0 ? 'c-green' : 'c-red'}">${full.r.toFixed(3)}</div><div class="p">n=${full.n}, p=${fullP < 0.001 ? '<0.001' : fullP.toFixed(3)}</div></div>
-    <div class="corr-box"><div class="lbl">위기구간(하위${Math.round(state.crisisPct * 100)}%) 상관계수</div><div class="val ${crisis.r < 0 ? 'c-green' : 'c-red'}">${crisis.r.toFixed(3)}</div><div class="p">n=${crisis.n}, p=${crisisP < 0.001 ? '<0.001' : crisisP.toFixed(3)}</div></div>
+    <div class="corr-box"><div class="lbl tip" data-tip="투자기간 전체 일별 수익률로 계산한 피어슨 상관계수(r)입니다. 음수일수록 주식이 떨어질 때 채권이 오르는 경향이 강합니다.">전체기간 상관계수</div><div class="val ${full.r < 0 ? 'c-green' : 'c-red'}">${full.r.toFixed(3)}</div><div class="p">n=${full.n}, p=${fullP < 0.001 ? '<0.001' : fullP.toFixed(3)}</div></div>
+    <div class="corr-box"><div class="lbl tip" data-tip="주식이 가장 많이 떨어진 날들(하위 %)만 뽑아서 계산한 상관계수입니다. 평시보다 더 음수라면, 정작 필요한 위기 순간에 채권이 더 강하게 방어해준다는 뜻입니다.">위기구간(하위${Math.round(state.crisisPct * 100)}%) 상관계수</div><div class="val ${crisis.r < 0 ? 'c-green' : 'c-red'}">${crisis.r.toFixed(3)}</div><div class="p">n=${crisis.n}, p=${crisisP < 0.001 ? '<0.001' : crisisP.toFixed(3)}</div></div>
   `;
 
   const roll = rollingCorrelation(eqRet, bdRet, 60);
