@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Best Days 제거 시뮬레이터</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <style>
+    :root {
+      --bg: #0a0c10; --surface: #13161e; --card: #1c2030; --border: #2d3346;
+      --blue: #5b9cf6; --orange: #f5a623; --green: #4cce82; --red: #f05252;
+      --text: #d8dde8; --muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, 'Noto Sans KR', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+    h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+    .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 32px; }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+    .card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 18px; }
+
+    /* Date range */
+    .date-range-wrap { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .date-field { display: flex; flex-direction: column; gap: 5px; }
+    .date-field label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+    input[type="date"] {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+      color: var(--text); padding: 7px 12px; font-size: 13px; cursor: pointer; outline: none;
+    }
+    input[type="date"]:focus { border-color: var(--blue); }
+    input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cursor: pointer; }
+    .date-arrow { color: var(--muted); font-size: 16px; margin-top: 18px; }
+    .date-summary { margin-left: 8px; margin-top: 18px; font-size: 12px; color: var(--muted); }
+    .date-summary strong { color: var(--text); }
+    .presets { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+    .preset-btn {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 5px;
+      color: var(--muted); padding: 4px 10px; font-size: 11px; cursor: pointer; transition: all .15s;
+    }
+    .preset-btn:hover { border-color: var(--blue); color: var(--blue); }
+    .preset-btn.active { background: rgba(91,156,246,.12); border-color: var(--blue); color: var(--blue); font-weight: 700; }
+
+    /* Slider */
+    .slider-wrap { display: flex; align-items: center; gap: 16px; }
+    .slider-label { font-size: 12px; color: var(--muted); white-space: nowrap; }
+    input[type="range"] { flex: 1; height: 4px; -webkit-appearance: none; appearance: none; background: var(--border); border-radius: 2px; outline: none; cursor: pointer; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--blue); cursor: pointer; }
+    .n-display { font-size: 28px; font-weight: 800; color: var(--blue); min-width: 80px; text-align: right; }
+    .n-unit { font-size: 14px; color: var(--muted); margin-left: 2px; }
+
+    /* Metrics grid */
+    .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    @media (max-width: 680px) { .metrics-grid, .charts-grid, .topdays-grid { grid-template-columns: 1fr !important; } }
+    .metric-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+    .metric-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .metric-header h2 { font-size: 18px; font-weight: 700; }
+    .badge { font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 600; }
+    .badge-blue { background: rgba(91,156,246,.15); color: var(--blue); }
+    .badge-orange { background: rgba(245,166,35,.15); color: var(--orange); }
+    .metric-section { margin-bottom: 14px; }
+    .section-label { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 8px; font-weight: 600; }
+    .metric-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+    .metric-name { font-size: 13px; color: var(--muted); }
+    .metric-val { font-size: 15px; font-weight: 700; }
+    .metric-val.xl { font-size: 24px; }
+    .divider { height: 1px; background: var(--border); margin: 14px 0; }
+    .diff-box { background: rgba(240,82,82,.08); border: 1px solid rgba(240,82,82,.2); border-radius: 8px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
+    .diff-box .lbl { font-size: 12px; color: var(--muted); }
+    .diff-box .val { font-size: 22px; font-weight: 800; color: var(--red); }
+
+    .c-blue { color: var(--blue); } .c-orange { color: var(--orange); }
+    .c-green { color: var(--green); } .c-red { color: var(--red); } .c-muted { color: var(--muted); }
+
+    /* Tooltips */
+    .tip { position: relative; cursor: help; text-decoration: underline dotted var(--border); text-underline-offset: 3px; }
+    .tip::after {
+      content: attr(data-tip); position: absolute; bottom: calc(100% + 6px); left: 50%;
+      transform: translateX(-50%); background: #252840; border: 1px solid var(--border);
+      border-radius: 7px; padding: 9px 13px; font-size: 11px; color: var(--text); line-height: 1.6;
+      white-space: normal; text-align: left; width: 220px; pointer-events: none; opacity: 0;
+      transition: opacity .15s; z-index: 200; font-weight: 400; text-decoration: none;
+    }
+    .tip:hover::after { opacity: 1; }
+
+    /* Methodology */
+    .method-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    @media (max-width: 800px) { .method-grid { grid-template-columns: 1fr; } }
+    .method-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+    .method-num { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+    .method-body { font-size: 13px; color: var(--muted); line-height: 1.75; }
+    .method-body strong { color: var(--text); }
+    .method-body .eg {
+      display: block; margin-top: 10px; padding: 10px 12px;
+      background: rgba(91,156,246,.06); border-left: 2px solid var(--blue);
+      border-radius: 0 5px 5px 0; font-size: 12px; color: #7a8aaa; line-height: 1.6;
+    }
+    .method-body .warn {
+      display: block; margin-top: 10px; padding: 8px 12px;
+      background: rgba(240,82,82,.06); border-left: 2px solid var(--red);
+      border-radius: 0 5px 5px 0; font-size: 12px; color: #9a6060; line-height: 1.6;
+    }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { padding: 8px 14px; text-align: right; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); border-bottom: 1px solid var(--border); }
+    thead th:first-child { text-align: center; }
+    tbody td { padding: 10px 14px; text-align: right; border-bottom: 1px solid rgba(45,51,70,.5); }
+    tbody td:first-child { text-align: center; }
+    tr.hl { background: rgba(91,156,246,.06); }
+    tr.hl td { font-weight: 700; }
+
+    /* Charts */
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .charts-grid .card { border-color: var(--blue); box-shadow: 0 0 0 1px rgba(91,156,246,.2), 0 4px 24px rgba(91,156,246,.08); }
+    .charts-grid .card-title { font-size: 13px; color: var(--text); font-weight: 800; letter-spacing: 0; text-transform: none; margin-bottom: 20px; }
+    .topdays-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+
+    /* Loading */
+    #loading { display: flex; align-items: center; justify-content: center; min-height: 70vh; flex-direction: column; gap: 14px; }
+    .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error-box { max-width: 520px; text-align: center; }
+    .error-box h3 { color: var(--red); margin-bottom: 10px; }
+    .error-box p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+    .error-box code { display: block; margin: 14px auto; padding: 14px; background: var(--surface); border-radius: 8px; font-family: 'Menlo', monospace; font-size: 12px; color: var(--blue); text-align: left; line-height: 1.8; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Best Days 제거 시뮬레이터</h1>
+  <p class="subtitle">상위 수익일 N개를 0%로 교체했을 때 연평균 수익률이 얼마나 달라지는지 시뮬레이션합니다</p>
+
+  <div id="loading">
+    <div class="spinner"></div>
+    <span style="color:var(--muted);font-size:14px">CSV 데이터 로딩 중...</span>
+  </div>
+
+  <div id="app" style="display:none">
+
+    <!-- 분석 기간 -->
+    <div class="card">
+      <div class="card-title">분석 기간 설정</div>
+      <div class="date-range-wrap">
+        <div class="date-field">
+          <label>시작일</label>
+          <input type="date" id="startDate">
+        </div>
+        <div class="date-arrow">→</div>
+        <div class="date-field">
+          <label>종료일</label>
+          <input type="date" id="endDate">
+        </div>
+        <div class="date-summary" id="dateSummary"></div>
+      </div>
+      <div class="presets" id="presets">
+        <button class="preset-btn" data-preset="all">전체 기간</button>
+        <button class="preset-btn" data-preset="2000">2000년 이후</button>
+        <button class="preset-btn" data-preset="2010">2010년 이후</button>
+        <button class="preset-btn" data-preset="10y">최근 10년</button>
+        <button class="preset-btn" data-preset="20y">최근 20년</button>
+      </div>
+    </div>
+
+    <!-- N 슬라이더 -->
+    <div class="card">
+      <div class="card-title">제거할 상위 수익일</div>
+      <div class="slider-wrap">
+        <span class="slider-label">0일</span>
+        <input type="range" id="nSlider" min="0" max="50" value="20" step="1">
+        <span class="slider-label">50일</span>
+        <div class="n-display"><span id="nVal">20</span><span class="n-unit">일</span></div>
+      </div>
+    </div>
+
+    <!-- 차트 -->
+    <div class="charts-grid">
+      <div class="card">
+        <div class="card-title">KOSPI 누적 수익률 (초기 100 기준)</div>
+        <canvas id="kospiChart" height="220"></canvas>
+      </div>
+      <div class="card">
+        <div class="card-title">S&P 500 누적 수익률 (초기 100 기준)</div>
+        <canvas id="spChart" height="220"></canvas>
+      </div>
+    </div>
+
+    <!-- 메트릭 카드 -->
+    <div class="metrics-grid">
+      <div class="metric-card" id="kospiCard"></div>
+      <div class="metric-card" id="spCard"></div>
+    </div>
+
+    <!-- 제거된 날 목록 -->
+    <div class="topdays-grid">
+      <div class="card">
+        <div class="card-title">제거된 KOSPI 상위 수익일</div>
+        <div id="kospiDays"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">제거된 S&P 500 상위 수익일</div>
+        <div id="spDays"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const FILES = {
+  kospi: ['kospi_1996_2015.csv', 'kospi_2015_2026.csv'],
+  sp500: ['sp500_1996_2015.csv', 'sp500_2015_2026.csv']
+};
+
+const TABLE_NS = [0, 5, 10, 15, 20, 25, 30];
+
+let state = {
+  kospi: [],       // 전체 원본
+  sp500: [],
+  kospiF: [],      // 날짜 필터링된 데이터
+  sp500F: [],
+  n: 20
+};
+let precomp = { kospi: {}, sp500: {} };
+let charts = { kospi: null, sp500: null };
+
+// ─── Utilities ────────────────────────────────────────────────────────────────
+const fmtPct  = (v, d=2) => (v >= 0 ? '+' : '') + v.toFixed(d) + '%';
+const fmtPp   = (v, d=2) => (v >= 0 ? '+' : '') + v.toFixed(d) + '%p';
+const fmtDate = d => `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+const toISO   = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const fmtLabel= d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+
+// ─── CSV Loading ──────────────────────────────────────────────────────────────
+async function fetchCSV(filename) {
+  const resp = await fetch(filename);
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${filename}`);
+  const text = await resp.text();
+  return new Promise((res, rej) => {
+    Papa.parse(text, { header: true, skipEmptyLines: true, complete: r => res(r.data), error: rej });
+  });
+}
+
+function parseRow(row) {
+  const dateStr = (row['날짜'] || '').replace(/\s/g, '');
+  if (!dateStr) return null;
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return null;
+  const retStr = (row['변동 %'] || '').replace(/\s/g, '');
+  if (!retStr || retStr === '-' || retStr === '--') return null;
+  const r = parseFloat(retStr.replace('%', ''));
+  if (isNaN(r)) return null;
+  return { date, r };
+}
+
+async function loadIndex(files) {
+  const raw = [];
+  for (const f of files) {
+    const rows = await fetchCSV(f);
+    rows.forEach(row => { const p = parseRow(row); if (p) raw.push(p); });
+  }
+  raw.sort((a, b) => a.date - b.date);
+  const seen = new Set();
+  return raw.filter(d => {
+    const k = d.date.getTime();
+    if (seen.has(k)) return false;
+    seen.add(k); return true;
+  });
+}
+
+// ─── Date Filtering ───────────────────────────────────────────────────────────
+function applyDateFilter() {
+  const startEl = document.getElementById('startDate');
+  const endEl   = document.getElementById('endDate');
+  const s = new Date(startEl.value + 'T00:00:00');
+  const e = new Date(endEl.value   + 'T23:59:59');
+
+  state.kospiF = state.kospi.filter(d => d.date >= s && d.date <= e);
+  state.sp500F = state.sp500.filter(d => d.date >= s && d.date <= e);
+
+  // 날짜 요약 업데이트
+  const kLen = state.kospiF.length, sLen = state.sp500F.length;
+  const years = kLen > 1
+    ? ((state.kospiF[kLen-1].date - state.kospiF[0].date) / (365.25 * 864e5)).toFixed(1)
+    : '0';
+  document.getElementById('dateSummary').innerHTML =
+    `<strong>${years}년</strong> · KOSPI ${kLen.toLocaleString()}거래일 / S&P ${sLen.toLocaleString()}거래일`;
+
+  // 프리셋 활성화 표시 해제
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+
+  // 캐시 초기화 후 재계산
+  precomp = { kospi: {}, sp500: {} };
+  buildPrecomp();
+  update();
+}
+
+function setDateRange(start, end) {
+  document.getElementById('startDate').value = toISO(start);
+  document.getElementById('endDate').value   = toISO(end);
+  applyDateFilter();
+}
+
+// ─── Calculation ──────────────────────────────────────────────────────────────
+function calcStats(data, n) {
+  if (!data || data.length < 2) return { startDate: null, endDate: null, totalDays: 0, years: 0, origTotal: 0, origCagr: 0, modTotal: 0, modCagr: 0, topDays: [] };
+  const sorted = [...data].sort((a, b) => b.r - a.r);
+  const topN   = sorted.slice(0, n);
+  const topSet = new Set(topN.map(d => d.date.getTime()));
+  let vOrig = 1, vMod = 1;
+  for (const d of data) {
+    vOrig *= (1 + d.r / 100);
+    vMod  *= (1 + (topSet.has(d.date.getTime()) ? 0 : d.r) / 100);
+  }
+  const years = (data[data.length-1].date - data[0].date) / (365.25 * 864e5);
+  return {
+    startDate: data[0].date, endDate: data[data.length-1].date,
+    totalDays: data.length, years,
+    origTotal: (vOrig - 1) * 100, origCagr: (Math.pow(vOrig, 1/years) - 1) * 100,
+    modTotal:  (vMod  - 1) * 100, modCagr:  (Math.pow(vMod,  1/years) - 1) * 100,
+    topDays: topN
+  };
+}
+
+function calcCurve(data, n) {
+  if (!data || data.length < 2) return { labels: [], orig: [], mod: [] };
+  const topSet = new Set([...data].sort((a, b) => b.r - a.r).slice(0, n).map(d => d.date.getTime()));
+  let vO = 100, vM = 100;
+  const labels = [], orig = [], mod = [];
+  data.forEach((d, i) => {
+    vO *= (1 + d.r / 100);
+    vM *= (1 + (topSet.has(d.date.getTime()) ? 0 : d.r) / 100);
+    if (i % 5 === 0 || i === data.length - 1) {
+      labels.push(fmtLabel(d.date));
+      orig.push(+vO.toFixed(2)); mod.push(+vM.toFixed(2));
+    }
+  });
+  return { labels, orig, mod };
+}
+
+function buildPrecomp() {
+  for (const n of TABLE_NS) {
+    precomp.kospi[n] = calcStats(state.kospiF, n);
+    precomp.sp500[n] = calcStats(state.sp500F, n);
+  }
+}
+
+// ─── Rendering ────────────────────────────────────────────────────────────────
+function renderMetricCard(elId, title, color, st, n) {
+  const bc = color === 'blue' ? 'badge-blue' : 'badge-orange';
+  const cv = color === 'blue' ? 'var(--blue)' : 'var(--orange)';
+  document.getElementById(elId).innerHTML = `
+    <div class="metric-header">
+      <h2 style="color:${cv}">${title}</h2>
+      <span class="badge ${bc}">${st.years.toFixed(1)}년 보유</span>
+    </div>
+    <div class="metric-section">
+      <div class="section-label">원본 (전 기간 보유)</div>
+      <div class="metric-row">
+        <span class="metric-name tip" data-tip="전체 거래일 수익률을 곱셈 누적&#10;100만원 투자 시 최종 금액 배율 − 1">누적 수익률</span>
+        <span class="metric-val c-green">${fmtPct(st.origTotal, 0)}</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-name tip" data-tip="복리 기준 연평균 수익률&#10;공식: (최종배수)^(1/년수) − 1&#10;단순 평균보다 정직한 수치">연평균 수익률</span>
+        <span class="metric-val xl" style="color:${cv}">${fmtPct(st.origCagr)}</span>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="metric-section">
+      <div class="section-label">상위 ${n}일 제거 후</div>
+      <div class="metric-row">
+        <span class="metric-name tip" data-tip="상위 ${n}일의 수익률을 0%로 교체하고&#10;나머지 거래일만으로 다시 계산한 값">누적 수익률</span>
+        <span class="metric-val c-red">${fmtPct(st.modTotal, 0)}</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-name tip" data-tip="상위 ${n}일 제거 후 재계산한 수익률&#10;공식: (수정된 최종배수)^(1/년수) − 1">연평균 수익률</span>
+        <span class="metric-val xl c-red">${fmtPct(st.modCagr)}</span>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="diff-box">
+      <span class="lbl tip" data-tip="제거 후 수익률 − 원본 수익률&#10;단위: %p (퍼센트포인트)&#10;예) 8.00% → 5.50%이면 −2.50%p">수익률 감소폭 (%p)</span>
+      <span class="val">${fmtPp(st.modCagr - st.origCagr)}</span>
+    </div>
+  `;
+}
+
+function renderTable(n) {
+  const bk = precomp.kospi[0].origCagr;
+  const bs = precomp.sp500[0].origCagr;
+  const ns = TABLE_NS.includes(n) ? TABLE_NS : [...TABLE_NS, n].sort((a,b)=>a-b);
+  let html = `<table><thead><tr>
+    <th>제거일수</th>
+    <th>KOSPI 수익률</th><th>KOSPI 변화</th>
+    <th>S&amp;P 500 수익률</th><th>S&amp;P 변화</th>
+  </tr></thead><tbody>`;
+  for (const ni of ns) {
+    const ks = precomp.kospi[ni] || (precomp.kospi[ni] = calcStats(state.kospiF, ni));
+    const ss = precomp.sp500[ni] || (precomp.sp500[ni] = calcStats(state.sp500F, ni));
+    const hl = ni === n ? ' class="hl"' : '';
+    const kd = ni === 0 ? '—' : `<span class="c-red">${fmtPp(ks.modCagr - bk)}</span>`;
+    const sd = ni === 0 ? '—' : `<span class="c-red">${fmtPp(ss.modCagr - bs)}</span>`;
+    html += `<tr${hl}>
+      <td>${ni === 0 ? '<span class="c-muted">기준 (0일)</span>' : ni + '일'}</td>
+      <td class="c-blue">${fmtPct(ks.modCagr)}</td><td>${kd}</td>
+      <td class="c-orange">${fmtPct(ss.modCagr)}</td><td>${sd}</td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  document.getElementById('compTable').innerHTML = html;
+}
+
+function renderTopDays(elId, st, n) {
+  const el = document.getElementById(elId);
+  if (n === 0) { el.innerHTML = '<p style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0">제거된 날 없음</p>'; return; }
+  let html = '<table><thead><tr><th style="text-align:left">날짜</th><th>수익률</th></tr></thead><tbody>';
+  for (const d of st.topDays)
+    html += `<tr><td style="text-align:left;color:var(--muted)">${fmtDate(d.date)}</td><td class="c-green">+${d.r.toFixed(2)}%</td></tr>`;
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function renderChart(canvasId, chartRef, curve, color) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  if (chartRef) chartRef.destroy();
+  return new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: curve.labels,
+      datasets: [
+        { label: '원본 보유', data: curve.orig, borderColor: color, borderWidth: 1.5, pointRadius: 0, tension: 0.2, fill: false },
+        { label: `상위 ${state.n}일 제거`, data: curve.mod, borderColor: 'rgba(240,82,82,0.85)', borderWidth: 1.5, pointRadius: 0, tension: 0.2, fill: false, borderDash: [5, 3] }
+      ]
+    },
+    options: {
+      responsive: true, animation: false,
+      plugins: {
+        legend: { labels: { color: '#666', font: { size: 11 }, boxWidth: 20 } },
+        tooltip: { mode: 'index', intersect: false, callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}` } }
+      },
+      scales: {
+        x: { ticks: { color: '#555', maxTicksLimit: 8, font: { size: 10 } }, grid: { color: '#1a1d27' } },
+        y: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#1a1d27' } }
+      }
+    }
+  });
+}
+
+// ─── Update ───────────────────────────────────────────────────────────────────
+function update() {
+  const n = state.n;
+  const ks = precomp.kospi[n] || (precomp.kospi[n] = calcStats(state.kospiF, n));
+  const ss = precomp.sp500[n] || (precomp.sp500[n] = calcStats(state.sp500F, n));
+
+  renderMetricCard('kospiCard', 'KOSPI',   'blue',   ks, n);
+  renderMetricCard('spCard',   'S&P 500', 'orange', ss, n);
+  renderTopDays('kospiDays', ks, n);
+  renderTopDays('spDays',    ss, n);
+
+  charts.kospi = renderChart('kospiChart', charts.kospi, calcCurve(state.kospiF, n), '#5b9cf6');
+  charts.sp500 = renderChart('spChart',    charts.sp500, calcCurve(state.sp500F, n), '#f5a623');
+}
+
+// ─── Presets ──────────────────────────────────────────────────────────────────
+function initPresets() {
+  const k = state.kospi, s = state.sp500;
+  const allStart = k[0].date < s[0].date ? k[0].date : s[0].date;
+  const allEnd   = k[k.length-1].date > s[s.length-1].date ? k[k.length-1].date : s[s.length-1].date;
+  const now = allEnd;
+
+  const PRESETS = {
+    all:  [allStart, allEnd],
+    2000: [new Date('2000-01-01'), allEnd],
+    2010: [new Date('2010-01-01'), allEnd],
+    '10y': [new Date(now.getFullYear()-10, now.getMonth(), now.getDate()), allEnd],
+    '20y': [new Date(now.getFullYear()-20, now.getMonth(), now.getDate()), allEnd]
+  };
+
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const [s, e] = PRESETS[btn.dataset.preset];
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('startDate').value = toISO(s);
+      document.getElementById('endDate').value   = toISO(e);
+      applyDateFilter();
+    });
+  });
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    [state.kospi, state.sp500] = await Promise.all([
+      loadIndex(FILES.kospi),
+      loadIndex(FILES.sp500)
+    ]);
+
+    // 날짜 input min/max 설정
+    const k = state.kospi, s = state.sp500;
+    const globalStart = k[0].date < s[0].date ? k[0].date : s[0].date;
+    const globalEnd   = k[k.length-1].date > s[s.length-1].date ? k[k.length-1].date : s[s.length-1].date;
+
+    const startEl = document.getElementById('startDate');
+    const endEl   = document.getElementById('endDate');
+    startEl.min = toISO(globalStart); startEl.max = toISO(globalEnd);
+    endEl.min   = toISO(globalStart); endEl.max   = toISO(globalEnd);
+    startEl.value = toISO(globalStart);
+    endEl.value   = toISO(globalEnd);
+
+    startEl.addEventListener('change', applyDateFilter);
+    endEl.addEventListener('change',   applyDateFilter);
+
+    initPresets();
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+
+    const slider = document.getElementById('nSlider');
+    slider.addEventListener('input', () => {
+      state.n = +slider.value;
+      document.getElementById('nVal').textContent = state.n;
+      update();
+    });
+
+    // 초기 필터 적용 (전체 기간)
+    document.querySelector('[data-preset="all"]').classList.add('active');
+    applyDateFilter();
+
+  } catch (err) {
+    document.getElementById('loading').innerHTML = `
+      <div class="error-box">
+        <h3>데이터 로딩 실패</h3>
+        <p>파일을 직접 열면 CSV를 불러올 수 없습니다.<br>아래 명령어로 서버를 띄운 후 접속해주세요.</p>
+        <code>cd "other/회고/휴학/하나증권/상품설계/simulation"<br>python3 -m http.server 8080</code>
+        <p>그 다음 브라우저에서 <strong style="color:var(--blue)">http://localhost:8080</strong> 접속</p>
+        <p style="margin-top:12px;font-size:11px;color:#444">오류: ${err.message}</p>
+      </div>
+    `;
+  }
+}
+
+init();
+</script>
+</body>
+</html>
