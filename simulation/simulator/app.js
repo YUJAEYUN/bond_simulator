@@ -219,6 +219,28 @@ function aggregateByWeight(results) {
 
 const mean = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
 
+// ─── H3: 위험 대비 수익(변동성, 샤프비율) ───────────────────────────────────
+function annualizedVol(returns) {
+  const m = mean(returns);
+  const variance = mean(returns.map(r => (r - m) ** 2));
+  return Math.sqrt(variance) * Math.sqrt(252);
+}
+
+function computeSharpeGrid() {
+  const { weightSeries, dates } = cache;
+  const years = (dates[dates.length - 1] - dates[0]) / 86400000 / 365.25;
+  const grid = {};
+  for (const w of CONFIG.weightGrid) {
+    const s = weightSeries[w];
+    const rets = [];
+    for (let t = 1; t < s.length; t++) rets.push(s[t] / s[t - 1] - 1);
+    const cagrW = Math.pow(s[s.length - 1] / 100, 1 / years) - 1;
+    const volW = annualizedVol(rets);
+    grid[w] = { cagr: cagrW, vol: volW, sharpe: volW > 0 ? cagrW / volW : 0 };
+  }
+  return grid;
+}
+
 // ─── H2: correlation ─────────────────────────────────────────────────────────
 function pearson(xs, ys) {
   const n = xs.length;
@@ -427,6 +449,7 @@ function update() {
   renderEpisodeTable();
   renderEpisodeChart();
   updateH2();
+  renderH3();
 }
 
 // ─── 핵심 요약 (100% 채권 vs 100% 주식 vs 혼합) ─────────────────────────────
@@ -711,6 +734,55 @@ function updateH2() {
             ? '평소에는 채권이 주식과 반대로 움직였지만, 정작 위기 때는 그 경향이 뚜렷하지 않았습니다 — 하락장 방어 효과를 단정하기는 어렵습니다.'
             : '평소에도 위기 때도 채권이 주식과 뚜렷하게 반대로 움직인다고 보기는 어려웠습니다.')}
       ${posYears.length ? ` · 채권이 오히려 주식과 같이 움직인 해: ${posYears.join(', ')}` : ''}
+    </div>`;
+}
+
+// ─── H3 rendering ───────────────────────────────────────────────────────────
+const fmtPlainPct = (v, d = 1) => (v * 100).toFixed(d) + '%';
+
+function renderH3() {
+  const sharpeGrid = computeSharpeGrid();
+  const weights = CONFIG.weightGrid;
+  const labels = weights.map(w => `${Math.round(w * 100)}%`);
+  const colors = weights.map(w => CONFIG.gridColors[w]);
+
+  charts.sharpeByWeight = renderBarChart('sharpeByWeightChart', charts.sharpeByWeight, labels,
+    weights.map(w => +sharpeGrid[w].sharpe.toFixed(2)), colors, '수익 ÷ 변동성 (무위험금리 0% 가정)');
+
+  let bestW = weights[0];
+  for (const w of weights) if (sharpeGrid[w].sharpe > sharpeGrid[bestW].sharpe) bestW = w;
+
+  const eq = sharpeGrid[1.0];
+  const best = sharpeGrid[bestW];
+  const lev = best.vol > 0 ? eq.vol / best.vol : 1;
+  const leveredReturn = best.cagr * lev;
+
+  document.getElementById('leverageBox').innerHTML = `
+    <div class="leverage-stack">
+      <div class="corr-box">
+        <div class="lbl">100% 주식 (그대로)</div>
+        <div class="val c-orange">${fmtPct(eq.cagr)}</div>
+        <div class="p">변동성 ${fmtPlainPct(eq.vol)} · 수익÷변동성 ${eq.sharpe.toFixed(2)}</div>
+      </div>
+      <div class="corr-box">
+        <div class="lbl tip" data-tip="지금 그리드(주식 100%~0%) 중 수익÷변동성이 가장 높은 조합입니다.">가장 효율적인 조합 (주식 ${Math.round(bestW * 100)}%)</div>
+        <div class="val c-blue">${fmtPct(best.cagr)}</div>
+        <div class="p">변동성 ${fmtPlainPct(best.vol)} · 수익÷변동성 ${best.sharpe.toFixed(2)}</div>
+      </div>
+      <div class="corr-box">
+        <div class="lbl tip" data-tip="위 조합에 레버리지 ${lev.toFixed(2)}배를 걸어서 100% 주식과 같은 변동성(${fmtPlainPct(eq.vol)})까지 맞췄다고 가정했을 때의 이론상 기대수익입니다. 레버리지 조달비용, 변동성 드래그, 마진콜 위험은 반영하지 않은 단순 계산치입니다.">레버리지로 주식과 같은 위험까지 올리면</div>
+        <div class="val ${leveredReturn > eq.cagr ? 'c-green' : 'c-red'}">${fmtPct(leveredReturn)}</div>
+        <div class="p">${lev.toFixed(2)}배 레버리지 가정 (이론상 근사치)</div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('h3Verdict').innerHTML = `
+    <div class="verdict ${leveredReturn > eq.cagr ? 'pass' : 'fail'}">
+      ${leveredReturn > eq.cagr
+        ? `가장 효율적인 조합(주식 ${Math.round(bestW * 100)}%)은 100% 주식보다 덜 벌지만(${fmtPct(best.cagr)}), 같은 위험 수준까지 레버리지를 걸면 이론상 100% 주식(${fmtPct(eq.cagr)})보다 높은 ${fmtPct(leveredReturn)}을 기대할 수 있습니다 — "어떤 자산이 이기나"보다 "위험 대비 효율이 가장 좋은 조합을 찾고, 위험 수준은 레버리지로 조절하는" 접근이 이론상 더 유리하다는 뜻입니다.`
+        : `이 그리드 안에서는 레버리지를 감안해도 100% 주식이 가장 효율적이었습니다. 이 구간에서는 채권을 섞는 분산 효과보다 주식 자체의 수익력이 더 크게 작용했습니다.`}
+      실제로는 레버리지 조달비용·변동성 드래그·상관관계 붕괴 위험이 있어 이 수치보다 낮게 나올 가능성이 높습니다.
     </div>`;
 }
 

@@ -110,6 +110,8 @@
 
   .summary-verdict { font-size: 13px; line-height: 1.7; color: var(--text); margin-top: 4px; }
   .summary-verdict b { color: var(--blue); }
+
+  .leverage-stack { display: flex; flex-direction: column; gap: 12px; }
 </style>
 </head>
 <body>
@@ -235,6 +237,19 @@
         </div>
       </div>
       <div id="h2Verdict"></div>
+    </div>
+
+    <!-- H3 -->
+    <div class="card">
+      <div class="section-title">③ 위험 대비 수익 — 어떤 비중이 가장 효율적인가</div>
+      <p class="section-desc">수익률만 비교하면 위험(변동성) 수준이 다른 자산을 불공정하게 비교하는 셈입니다. 위험 1단위당 얼마나 버는지(수익÷변동성)로 비교하면 어떤 비중이 가장 효율적인지 보이고, 거기에 레버리지를 걸어 위험 수준만 다시 맞추면 어떻게 되는지도 확인할 수 있습니다.</p>
+      <div class="charts-grid">
+        <div>
+          <canvas id="sharpeByWeightChart" height="220"></canvas>
+        </div>
+        <div id="leverageBox"></div>
+      </div>
+      <div id="h3Verdict"></div>
     </div>
 
     <div class="footnote">
