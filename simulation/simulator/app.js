@@ -1,20 +1,19 @@
 const CONFIG = {
   pairs: {
-    sp500: { equityFile: 'data/sp500.csv', bondFile: 'data/us10y_yield.csv', label: 'S&P500 / 미국채 10Y', color: '#5b9cf6' },
-    kospi: { equityFile: 'data/kospi.csv', bondFile: 'data/kr10y_yield.csv', label: 'KOSPI / 한국채 10Y', color: '#5b9cf6' },
+    sp500: { equityFile: 'data/sp500.csv', bondFile: 'data/us10y_yield.csv' },
+    kospi: { equityFile: 'data/kospi.csv', bondFile: 'data/kr10y_yield.csv' },
   },
   weightGrid: [1.0, 0.8, 0.6, 0.4, 0.2, 0.0],
   gridColors: { 1.0: '#1f4e8c', 0.8: '#3d7ab5', 0.6: '#6aa6d8', 0.4: '#f2b53c', 0.2: '#e07b39', 0.0: '#c0392b' },
   maturityYears: 10,
 };
 
+// rebalanceFreq/crisisPct are fixed (no UI control) to keep the settings card to one decision: 주식비중
 let state = {
   pair: 'sp500',
   weight: 0.6,
   rebalanceFreq: 'annual',
-  threshold: -0.10,
   crisisPct: 0.05,
-  selectedEpisode: 0,
 };
 
 let dataByPair = {};   // pair -> { aligned }
@@ -130,92 +129,6 @@ function rollingDrawdown(values) {
   return dd;
 }
 
-function identifyEpisodes(dates, values, threshold) {
-  const n = values.length;
-  const dd = rollingDrawdown(values);
-  const episodes = [];
-  let inEpisode = false, peakIdx = 0, troughIdx = 0;
-  let runMax = values[0], runMaxIdx = 0;
-
-  let i = 1;
-  while (i < n) {
-    if (values[i] > runMax) { runMax = values[i]; runMaxIdx = i; }
-    if (!inEpisode) {
-      if (dd[i] < 0) {
-        peakIdx = runMaxIdx;
-        inEpisode = true;
-        troughIdx = i;
-      }
-      i++;
-    } else {
-      if (values[i] < values[troughIdx]) troughIdx = i;
-      if (dd[i] >= 0) {
-        if (dd[troughIdx] <= threshold) {
-          episodes.push({
-            peakIdx, peakDate: dates[peakIdx], peakValue: values[peakIdx],
-            troughIdx, troughDate: dates[troughIdx], troughValue: values[troughIdx],
-            recoveryIdx: i, recoveryDate: dates[i],
-            mdd: dd[troughIdx],
-            recoveryDays: (dates[i] - dates[troughIdx]) / 86400000,
-          });
-        }
-        inEpisode = false;
-      }
-      i++;
-    }
-  }
-  if (inEpisode && dd[troughIdx] <= threshold) {
-    episodes.push({
-      peakIdx, peakDate: dates[peakIdx], peakValue: values[peakIdx],
-      troughIdx, troughDate: dates[troughIdx], troughValue: values[troughIdx],
-      recoveryIdx: null, recoveryDate: null,
-      mdd: dd[troughIdx], recoveryDays: null,
-    });
-  }
-  return episodes;
-}
-
-// ─── H1: exit-loss simulation ───────────────────────────────────────────────
-function simulateExitLosses(aligned, weightSeries, episodes) {
-  const dates = aligned.map(d => d.date);
-  const n = dates.length;
-  const results = [];
-  for (const ep of episodes) {
-    const searchEnd = ep.recoveryIdx !== null ? ep.recoveryIdx : n - 1;
-    for (const w of CONFIG.weightGrid) {
-      const series = weightSeries[w];
-      const peakVal = series[ep.peakIdx];
-      let troughLocal = 0, minRel = Infinity;
-      for (let t = ep.peakIdx; t <= searchEnd; t++) {
-        const rel = series[t] / peakVal - 1;
-        if (rel < minRel) { minRel = rel; troughLocal = t - ep.peakIdx; }
-      }
-      const troughIdx = ep.peakIdx + troughLocal;
-      let recoveryIdx = null;
-      for (let t = troughIdx; t < n; t++) {
-        if (series[t] >= peakVal) { recoveryIdx = t; break; }
-      }
-      const recoveryDays = recoveryIdx !== null ? (dates[recoveryIdx] - dates[troughIdx]) / 86400000 : null;
-      results.push({ episode: ep, weight: w, mdd: minRel, troughIdx, recoveryDays, recovered: recoveryIdx !== null });
-    }
-  }
-  return results;
-}
-
-function aggregateByWeight(results) {
-  const agg = {};
-  for (const w of CONFIG.weightGrid) {
-    const rows = results.filter(r => r.weight === w);
-    const mdds = rows.map(r => r.mdd);
-    const recs = rows.filter(r => r.recovered).map(r => r.recoveryDays);
-    agg[w] = {
-      meanMdd: mean(mdds), worstMdd: Math.min(...mdds),
-      meanRecovery: recs.length ? mean(recs) : null,
-      nRecovered: recs.length, nEpisodes: rows.length,
-    };
-  }
-  return agg;
-}
 
 const mean = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
 
@@ -374,7 +287,6 @@ function setupControls() {
       document.querySelectorAll('.pair-tab').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       state.pair = btn.dataset.pair;
-      state.selectedEpisode = 0;
       update();
     });
   });
@@ -389,55 +301,21 @@ function setupControls() {
     renderSummary();
   });
 
-  document.querySelectorAll('#rebalanceGroup .radio-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#rebalanceGroup .radio-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      state.rebalanceFreq = btn.dataset.freq;
-      state.selectedEpisode = 0;
-      update();
-    });
-  });
-  document.querySelectorAll('#thresholdGroup .radio-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#thresholdGroup .radio-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      state.threshold = +btn.dataset.th;
-      state.selectedEpisode = 0;
-      update();
-    });
-  });
-  document.querySelectorAll('#crisisGroup .radio-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#crisisGroup .radio-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      state.crisisPct = +btn.dataset.pct;
-      updateH2();
-    });
-  });
 }
 
 // ─── Main render pipeline ───────────────────────────────────────────────────
-let cache = {}; // per pair+freq+threshold: { weightSeries, episodes, exitResults, agg }
+let cache = {}; // per pair+freq: { weightSeries }
 
 function computeGridCache() {
   const { aligned } = dataByPair[state.pair];
-  const key = `${state.pair}|${state.rebalanceFreq}|${state.threshold}`;
+  const key = `${state.pair}|${state.rebalanceFreq}`;
   if (cache.key === key) return cache;
 
   const weightSeries = {};
   for (const w of CONFIG.weightGrid) weightSeries[w] = portfolioTR(aligned, w, state.rebalanceFreq);
   const dates = aligned.map(d => d.date);
-  const episodes = identifyEpisodes(dates, weightSeries[1.0], state.threshold);
-  const exitResults = simulateExitLosses(aligned, weightSeries, episodes);
-  const agg = aggregateByWeight(exitResults);
 
-  // 기본 선택: 연대순 첫 구간이 아니라 낙폭이 가장 컸던(가장 대표적인) 구간
-  let worstIdx = 0, worstMdd = Infinity;
-  episodes.forEach((e, i) => { if (e.mdd < worstMdd) { worstMdd = e.mdd; worstIdx = i; } });
-  state.selectedEpisode = worstIdx;
-
-  cache = { key, aligned, dates, weightSeries, episodes, exitResults, agg };
+  cache = { key, aligned, dates, weightSeries };
   return cache;
 }
 
@@ -445,9 +323,6 @@ function update() {
   computeGridCache();
   renderSummary();
   updateWeightDependent();
-  renderH1();
-  renderEpisodeTable();
-  renderEpisodeChart();
   updateH2();
   renderH3();
 }
@@ -499,18 +374,17 @@ function renderSummary() {
     대신 가장 심하게 떨어졌을 때 주식은 ${fmtPct(mddEq)}, 채권은 ${fmtPct(mddBd)}까지 떨어졌습니다 — <b>채권은 덜 벌지만 덜 떨어집니다.</b>
     지금처럼 채권을 섞으면(주식 ${Math.round(state.weight * 100)}%) 수익은 ${fmtPct(cagrPort)}로 낮아지는 대신, 최대 낙폭은 ${fmtPct(mddPort)}로 줄어듭니다.
     또한 둘의 상관계수가 ${corr.toFixed(2)}로 ${corr < 0 ? '주식이 떨어질 때 채권이 반대로 움직이는 경향이 있어서' : '뚜렷하게 반대로 움직이지는 않아서'}, 함께 담았을 때 ${corr < 0 ? '어느 정도 방어 효과를 기대할 수 있습니다.' : '기대만큼 방어 효과가 크지 않을 수 있습니다.'}
-    아래에서 실제 하락장 사례로 더 자세히 확인해보세요.
+    아래에서 이 관계와 위험 대비 수익 효율을 더 자세히 확인해보세요.
   `;
 }
 
 function currentPortfolioSeries(weight) {
-  const { aligned, rebalanceFreqUsed } = cache;
   if (Math.abs(weight - Math.round(weight * 5) / 5) < 1e-9 && cache.weightSeries[weight]) return cache.weightSeries[weight];
   return portfolioTR(cache.aligned, weight, state.rebalanceFreq);
 }
 
 function updateWeightDependent() {
-  const { aligned, dates } = cache;
+  const { dates } = cache;
   const portfolio = currentPortfolioSeries(state.weight);
   const equityOnly = cache.weightSeries[1.0];
   const dd = rollingDrawdown(portfolio);
@@ -584,27 +458,6 @@ function renderLineChart(canvasId, existing, labels, datasets, opts = {}) {
   });
 }
 
-// ─── H1 rendering ───────────────────────────────────────────────────────────
-function renderH1() {
-  const { agg, episodes } = cache;
-  const weights = CONFIG.weightGrid;
-  const labels = weights.map(w => `${Math.round(w * 100)}%`);
-  const colors = weights.map(w => CONFIG.gridColors[w]);
-
-  charts.mddByWeight = renderBarChart('mddByWeightChart', charts.mddByWeight, labels,
-    weights.map(w => +(agg[w].meanMdd * 100).toFixed(2)), colors, '평균 낙폭 (%)');
-  charts.recoveryByWeight = renderBarChart('recoveryByWeightChart', charts.recoveryByWeight, labels,
-    weights.map(w => agg[w].meanRecovery !== null ? +agg[w].meanRecovery.toFixed(0) : 0), colors, '원금 회복까지 평균 며칠 걸렸나');
-
-  const base = agg[1.0].meanMdd;
-  const improved = weights.filter(w => w !== 1.0).every(w => agg[w].meanMdd > base);
-  document.getElementById('h1Verdict').innerHTML = `
-    <div class="verdict ${improved ? 'pass' : 'fail'}">
-      지난 ${episodes.length}번의 큰 하락(고점 대비 ${Math.abs(state.threshold * 100).toFixed(0)}% 이상 하락) 기준 —
-      ${improved ? '채권을 많이 섞을수록 모든 하락장에서 손실이 예외 없이 더 적었습니다.' : '채권을 섞는다고 항상 손실이 줄어들지는 않았습니다 (구간마다 결과가 달랐습니다).'}
-    </div>`;
-}
-
 function renderBarChart(canvasId, existing, labels, data, colors, yLabel) {
   const ctx = document.getElementById(canvasId).getContext('2d');
   if (existing) existing.destroy();
@@ -620,44 +473,6 @@ function renderBarChart(canvasId, existing, labels, data, colors, yLabel) {
       },
     },
   });
-}
-
-// ─── Episode explorer ───────────────────────────────────────────────────────
-function renderEpisodeTable() {
-  const { episodes } = cache;
-  const ranked = episodes.map((e, i) => ({ ...e, idx: i })).sort((a, b) => a.mdd - b.mdd);
-  let html = '<table><thead><tr><th>하락 시작일</th><th>주식 낙폭</th></tr></thead><tbody>';
-  ranked.forEach(e => {
-    const hl = e.idx === state.selectedEpisode ? ' class="hl clickable"' : ' class="clickable"';
-    html += `<tr${hl} data-idx="${e.idx}"><td>${fmtDate(e.peakDate)}</td><td class="c-red">${fmtPct(e.mdd, 1)}</td></tr>`;
-  });
-  html += '</tbody></table>';
-  document.getElementById('episodeTable').innerHTML = html;
-  document.querySelectorAll('#episodeTable tr[data-idx]').forEach(tr => {
-    tr.addEventListener('click', () => {
-      state.selectedEpisode = +tr.dataset.idx;
-      renderEpisodeTable();
-      renderEpisodeChart();
-    });
-  });
-}
-
-function renderEpisodeChart() {
-  const { episodes, dates, weightSeries } = cache;
-  if (!episodes.length) return;
-  const ep = episodes[state.selectedEpisode] || episodes[0];
-  const endIdx = Math.min((ep.recoveryIdx !== null ? ep.recoveryIdx : dates.length - 1) + 10, dates.length - 1);
-  const labels = [];
-  for (let i = ep.peakIdx; i <= endIdx; i++) labels.push(fmtDate(dates[i]));
-
-  const datasets = CONFIG.weightGrid.map(w => {
-    const series = weightSeries[w];
-    const peakVal = series[ep.peakIdx];
-    const data = [];
-    for (let i = ep.peakIdx; i <= endIdx; i++) data.push(+((series[i] / peakVal - 1) * 100).toFixed(2));
-    return { label: `주식 ${Math.round(w * 100)}%`, data, color: CONFIG.gridColors[w], dash: [] };
-  });
-  charts.episode = renderLineChart('episodeChart', charts.episode, labels, datasets);
 }
 
 // ─── H2 rendering ───────────────────────────────────────────────────────────
@@ -747,7 +562,7 @@ function renderH3() {
   const colors = weights.map(w => CONFIG.gridColors[w]);
 
   charts.sharpeByWeight = renderBarChart('sharpeByWeightChart', charts.sharpeByWeight, labels,
-    weights.map(w => +sharpeGrid[w].sharpe.toFixed(2)), colors, '수익 ÷ 변동성 (무위험금리 0% 가정)');
+    weights.map(w => +sharpeGrid[w].sharpe.toFixed(2)), colors, '수익 ÷ 변동성 (위험 1단위당 버는 돈)');
 
   let bestW = weights[0];
   for (const w of weights) if (sharpeGrid[w].sharpe > sharpeGrid[bestW].sharpe) bestW = w;
@@ -770,7 +585,7 @@ function renderH3() {
         <div class="p">변동성 ${fmtPlainPct(best.vol)} · 수익÷변동성 ${best.sharpe.toFixed(2)}</div>
       </div>
       <div class="corr-box">
-        <div class="lbl tip" data-tip="위 조합에 레버리지 ${lev.toFixed(2)}배를 걸어서 100% 주식과 같은 변동성(${fmtPlainPct(eq.vol)})까지 맞췄다고 가정했을 때의 이론상 기대수익입니다. 레버리지 조달비용, 변동성 드래그, 마진콜 위험은 반영하지 않은 단순 계산치입니다.">레버리지로 주식과 같은 위험까지 올리면</div>
+        <div class="lbl tip" data-tip="위 조합에 빚을 내서(레버리지) ${lev.toFixed(2)}배를 걸어, 100% 주식과 같은 흔들림(변동성 ${fmtPlainPct(eq.vol)})까지 맞췄다고 가정했을 때의 이론상 기대수익입니다. 빌리는 데 드는 이자, 흔들림이 수익을 깎아먹는 효과, 폭락 시 강제 청산될 위험은 반영하지 않은 단순 계산치입니다.">레버리지로 주식과 같은 위험까지 올리면</div>
         <div class="val ${leveredReturn > eq.cagr ? 'c-green' : 'c-red'}">${fmtPct(leveredReturn)}</div>
         <div class="p">${lev.toFixed(2)}배 레버리지 가정 (이론상 근사치)</div>
       </div>
@@ -781,8 +596,8 @@ function renderH3() {
     <div class="verdict ${leveredReturn > eq.cagr ? 'pass' : 'fail'}">
       ${leveredReturn > eq.cagr
         ? `가장 효율적인 조합(주식 ${Math.round(bestW * 100)}%)은 100% 주식보다 덜 벌지만(${fmtPct(best.cagr)}), 같은 위험 수준까지 레버리지를 걸면 이론상 100% 주식(${fmtPct(eq.cagr)})보다 높은 ${fmtPct(leveredReturn)}을 기대할 수 있습니다 — "어떤 자산이 이기나"보다 "위험 대비 효율이 가장 좋은 조합을 찾고, 위험 수준은 레버리지로 조절하는" 접근이 이론상 더 유리하다는 뜻입니다.`
-        : `이 그리드 안에서는 레버리지를 감안해도 100% 주식이 가장 효율적이었습니다. 이 구간에서는 채권을 섞는 분산 효과보다 주식 자체의 수익력이 더 크게 작용했습니다.`}
-      실제로는 레버리지 조달비용·변동성 드래그·상관관계 붕괴 위험이 있어 이 수치보다 낮게 나올 가능성이 높습니다.
+        : `이 그리드 안에서는 레버리지를 감안해도 100% 주식이 가장 효율적이었습니다. 이 구간에서는 채권을 섞어서 얻는 효과보다 주식 자체의 수익력이 더 크게 작용했습니다.`}
+      실제로는 돈을 빌리는 데 드는 이자, 흔들림이 수익을 깎아먹는 효과, 주식-채권이 같이 무너질 위험이 있어 이 수치보다 낮게 나올 가능성이 높습니다.
     </div>`;
 }
 
