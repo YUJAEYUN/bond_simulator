@@ -27,8 +27,22 @@ simulation/
 │   ├── best_days_removal.py   # 기존 Best-Days 로직(Python 이식) + 비중별 확장
 │   └── run_all.py             # 전체 파이프라인 실행 (진입점)
 ├── output/                # run_all.py 실행 결과 (CSV/PNG/summary_report.md)
-└── web/                   # 기존 "Best Days 제거 시뮬레이터" (순수 JS, 브라우저용)
+├── web/                   # 기존 "Best Days 제거 시뮬레이터" (순수 JS, 브라우저용)
+└── simulator/             # 채권-주식 혼합 인터랙티브 시뮬레이터 (순수 JS, 브라우저용)
 ```
+
+## 인터랙티브 시뮬레이터 (simulation/simulator/)
+
+`src/`의 Python 분석 로직(채권 TR 재구성, 포트폴리오 리밸런싱, 낙폭/하락구간 식별, H1 중도해지
+시뮬레이션, H2 상관관계 분석)을 그대로 JavaScript로 이식한 브라우저 앱. 서버 없이 정적 파일만으로
+동작하며 Vercel/Netlify/GitHub Pages 등에 그대로 배포 가능하다 (Python 파일은 배포에 필요 없음 —
+`simulator/` 폴더만 정적 사이트로 서빙하면 됨).
+
+- 페어 선택(S&P500/미국채10Y ↔ KOSPI/한국채10Y), 주식비중 슬라이더, 리밸런싱 주기, 하락구간
+  임계값, 위기일 정의를 조작하면 누적수익지수·낙폭곡선·H1 비중별 낙폭/회복기간·하락구간별
+  손익곡선·H2 상관계수/롤링상관계수/산점도가 실시간으로 재계산된다.
+- 로컬 실행: `cd simulation/simulator && python3 -m http.server 8080` 후 브라우저에서 접속.
+- 계산 로직은 Python(`src/`) 결과와 대조 검증됨 (동일 CAGR/MDD/상관계수 산출 확인).
 
 ## 실행 방법
 

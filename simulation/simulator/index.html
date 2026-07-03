@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>채권-주식 혼합 시뮬레이터</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0c10; --surface: #13161e; --card: #1c2030; --border: #2d3346;
+    --blue: #5b9cf6; --orange: #f5a623; --green: #4cce82; --red: #f05252;
+    --text: #d8dde8; --muted: #6b7280;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, 'Noto Sans KR', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  .container { max-width: 1240px; margin: 0 auto; padding: 40px 24px; }
+  h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+  .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 32px; }
+
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+  .card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 18px; }
+  .card-title.big { font-size: 15px; color: var(--text); text-transform: none; letter-spacing: 0; }
+
+  .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 760px) { .controls-grid, .charts-grid, .metrics-grid, .h2-grid { grid-template-columns: 1fr !important; } }
+
+  .pair-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+  .pair-tab {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 7px;
+    color: var(--muted); padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s;
+  }
+  .pair-tab.active { background: rgba(91,156,246,.12); border-color: var(--blue); color: var(--blue); }
+
+  .slider-wrap { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+  .slider-label { font-size: 12px; color: var(--muted); white-space: nowrap; min-width: 70px; }
+  input[type="range"] { flex: 1; height: 4px; -webkit-appearance: none; appearance: none; background: var(--border); border-radius: 2px; outline: none; cursor: pointer; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--blue); cursor: pointer; }
+  .n-display { font-size: 22px; font-weight: 800; color: var(--blue); min-width: 110px; text-align: right; }
+
+  select {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text); padding: 7px 12px; font-size: 13px; cursor: pointer; outline: none;
+  }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .field label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+  .radio-group { display: flex; gap: 8px; }
+  .radio-btn {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--muted); padding: 6px 14px; font-size: 12px; cursor: pointer; transition: all .15s;
+  }
+  .radio-btn.active { background: rgba(91,156,246,.12); border-color: var(--blue); color: var(--blue); font-weight: 700; }
+
+  .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+  .metric-tile { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .metric-tile .lbl { font-size: 11px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: .05em; }
+  .metric-tile .val { font-size: 22px; font-weight: 800; }
+  .metric-tile .sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .c-blue { color: var(--blue); } .c-orange { color: var(--orange); }
+  .c-green { color: var(--green); } .c-red { color: var(--red); } .c-muted { color: var(--muted); }
+
+  .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  thead th { padding: 8px 10px; text-align: right; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); border-bottom: 1px solid var(--border); }
+  thead th:first-child { text-align: left; }
+  tbody td { padding: 9px 10px; text-align: right; border-bottom: 1px solid rgba(45,51,70,.5); }
+  tbody td:first-child { text-align: left; color: var(--muted); }
+  tr.hl { background: rgba(91,156,246,.06); }
+  tr.hl td { font-weight: 700; }
+  tr.clickable { cursor: pointer; }
+  tr.clickable:hover { background: rgba(91,156,246,.08); }
+
+  .tip { position: relative; cursor: help; text-decoration: underline dotted var(--border); text-underline-offset: 3px; }
+  .tip::after {
+    content: attr(data-tip); position: absolute; bottom: calc(100% + 6px); left: 0;
+    background: #252840; border: 1px solid var(--border);
+    border-radius: 7px; padding: 9px 13px; font-size: 11px; color: var(--text); line-height: 1.6;
+    white-space: normal; text-align: left; width: 240px; pointer-events: none; opacity: 0;
+    transition: opacity .15s; z-index: 200; font-weight: 400; text-decoration: none;
+  }
+  .tip:hover::after { opacity: 1; }
+
+  .h2-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .corr-summary { display: flex; gap: 24px; margin-bottom: 16px; flex-wrap: wrap; }
+  .corr-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; flex: 1; min-width: 160px; }
+  .corr-box .lbl { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .corr-box .val { font-size: 20px; font-weight: 800; }
+  .corr-box .p { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  #loading { display: flex; align-items: center; justify-content: center; min-height: 70vh; flex-direction: column; gap: 14px; }
+  .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-box { max-width: 520px; text-align: center; }
+  .error-box h3 { color: var(--red); margin-bottom: 10px; }
+  .error-box p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  .section-title { font-size: 17px; font-weight: 700; margin: 8px 0 14px; }
+  .verdict { font-size: 12px; padding: 8px 14px; border-radius: 7px; display: inline-block; margin-top: 10px; }
+  .verdict.pass { background: rgba(76,206,130,.12); color: var(--green); border: 1px solid rgba(76,206,130,.3); }
+  .verdict.fail { background: rgba(240,82,82,.12); color: var(--red); border: 1px solid rgba(240,82,82,.3); }
+  .footnote { font-size: 11px; color: var(--muted); line-height: 1.7; margin-top: 16px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>채권-주식 혼합 시뮬레이터</h1>
+  <p class="subtitle">주식 비중을 조절하며 하락장 낙폭 완화(H1)와 주식-채권 상관관계(H2)를 직접 확인해보세요</p>
+
+  <div id="loading">
+    <div class="spinner"></div>
+    <span style="color:var(--muted);font-size:14px">데이터 로딩 및 채권 총수익지수 재구성 중...</span>
+  </div>
+
+  <div id="app" style="display:none">
+
+    <!-- 컨트롤 -->
+    <div class="card">
+      <div class="card-title">시뮬레이션 설정</div>
+      <div class="pair-tabs" id="pairTabs">
+        <button class="pair-tab" data-pair="sp500">S&amp;P500 / 미국채 10Y</button>
+        <button class="pair-tab" data-pair="kospi">KOSPI / 한국채 10Y</button>
+      </div>
+      <div class="controls-grid">
+        <div>
+          <div class="slider-wrap">
+            <span class="slider-label">주식비중</span>
+            <input type="range" id="weightSlider" min="0" max="100" value="60" step="10">
+            <div class="n-display"><span id="weightVal">60</span>% / <span id="bondVal" class="c-muted" style="font-size:14px">40%</span></div>
+          </div>
+          <div class="field">
+            <label>리밸런싱 주기</label>
+            <div class="radio-group" id="rebalanceGroup">
+              <button class="radio-btn" data-freq="none">없음</button>
+              <button class="radio-btn active" data-freq="annual">연 1회</button>
+              <button class="radio-btn" data-freq="quarterly">분기 1회</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="field">
+            <label>하락구간 정의 (직전고점 대비)</label>
+            <div class="radio-group" id="thresholdGroup">
+              <button class="radio-btn" data-th="-0.05">-5%</button>
+              <button class="radio-btn active" data-th="-0.10">-10%</button>
+              <button class="radio-btn" data-th="-0.20">-20%</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>위기일 정의 (H2, 주식 하락률 하위)</label>
+            <div class="radio-group" id="crisisGroup">
+              <button class="radio-btn" data-pct="0.01">1%</button>
+              <button class="radio-btn active" data-pct="0.05">5%</button>
+              <button class="radio-btn" data-pct="0.10">10%</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 핵심 지표 -->
+    <div class="metrics-grid" id="metricsGrid"></div>
+
+    <!-- 누적수익률 / 낙폭 차트 -->
+    <div class="charts-grid">
+      <div class="card">
+        <div class="card-title big">누적 수익지수 (100 시작)</div>
+        <canvas id="trChart" height="230"></canvas>
+      </div>
+      <div class="card">
+        <div class="card-title big">낙폭(Drawdown) 곡선</div>
+        <canvas id="ddChart" height="230"></canvas>
+      </div>
+    </div>
+
+    <!-- H1: 비중별 낙폭 -->
+    <div class="card">
+      <div class="section-title">H1. 중도해지 손실 완화 — 비중별 낙폭·회복기간</div>
+      <div class="charts-grid">
+        <div>
+          <canvas id="mddByWeightChart" height="220"></canvas>
+        </div>
+        <div>
+          <canvas id="recoveryByWeightChart" height="220"></canvas>
+        </div>
+      </div>
+      <div id="h1Verdict"></div>
+    </div>
+
+    <!-- H1: 하락구간 탐색기 -->
+    <div class="card">
+      <div class="card-title big">대표 하락구간별 비중별 손익 곡선 (표에서 구간 클릭)</div>
+      <div class="charts-grid" style="grid-template-columns: 340px 1fr">
+        <div id="episodeTable"></div>
+        <canvas id="episodeChart" height="280"></canvas>
+      </div>
+    </div>
+
+    <!-- H2 -->
+    <div class="card">
+      <div class="section-title">H2. 음의 상관관계 (하락장 방어)</div>
+      <div class="corr-summary" id="corrSummary"></div>
+      <div class="h2-grid">
+        <div>
+          <div class="card-title big">60일 롤링 상관계수</div>
+          <canvas id="rollingCorrChart" height="230"></canvas>
+        </div>
+        <div>
+          <div class="card-title big">일별 수익률 산점도</div>
+          <canvas id="scatterChart" height="230"></canvas>
+        </div>
+      </div>
+      <div id="h2Verdict"></div>
+    </div>
+
+    <div class="footnote">
+      채권 총수익지수는 만기수익률(YTM) 시계열로부터 constant-maturity par bond 재가격 모델(연1회 이표 가정)로 재구성한 근사치입니다.
+      환율 미고려(달러/원화 각 페어 내에서 독립 계산), 세전 기준. 하락구간은 100% 주식 지수 기준으로 식별되며, 동일 날짜 창에서 비중별 포트폴리오의 실제 손실을 비교합니다.
+    </div>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
