@@ -115,11 +115,11 @@
 <body>
 <div class="container">
   <h1>채권-주식 혼합 시뮬레이터</h1>
-  <p class="subtitle">채권 장기투자가 주식(지수) 장기투자와 비교해 어떤 성격을 갖는지 — 수익률·낙폭·상관관계 세 가지 축으로 확인합니다</p>
+  <p class="subtitle">채권에 오래 투자하면 주식(지수)과 뭐가 다른지 — 수익, 하락폭, 서로 반대로 움직이는지를 직접 비교해봅니다</p>
 
   <div class="data-note">
-    ⓘ 이 시뮬레이터의 채권 수익률은 실제 채권 가격이 아니라, 만기수익률(YTM) 시계열로부터 재구성한 <b style="color:#d9ac5c">근사 총수익지수</b>입니다.
-    <span class="tip" data-tip="10년 만기 par bond를 매일 그 시점의 YTM으로 재가격(constant-maturity 가정)해 이표+가격변동을 합산한 값입니다. 실제 국채 ETF 수익률과는 다소 차이가 날 수 있습니다.">자세히</span>
+    ⓘ 여기서 "채권"은 개별 채권을 만기까지 들고 있는 게 아니라, <b style="color:#d9ac5c">채권 ETF처럼 항상 10년 만기를 유지하며 계속 갈아타는 방식</b>으로 계산했습니다.
+    <span class="tip" data-tip="매일 그날의 금리(만기수익률)로 10년 만기 채권 가격을 다시 계산해서 이어붙인 값입니다. 실제 채권 ETF 수익률과 다소 차이가 날 수 있습니다.">자세히</span>
   </div>
 
   <div id="loading">
@@ -151,17 +151,17 @@
             <div class="n-display"><span id="weightVal">60</span>% / <span id="bondVal" class="c-muted" style="font-size:14px">40%</span></div>
           </div>
           <div class="field">
-            <label>리밸런싱 주기</label>
+            <label>주식·채권 비중 다시 맞추는 주기 <span class="tip" data-tip="채권 자체는 항상 10년 만기로 유지됩니다(ETF와 동일). 이 옵션은 그것과 무관하게, 처음 정한 주식:채권 비율(예 60:40)이 시간이 지나며 흐트러진 걸 얼마나 자주 다시 맞출지 정하는 것입니다.">ⓘ</span></label>
             <div class="radio-group" id="rebalanceGroup">
-              <button class="radio-btn" data-freq="none">없음</button>
-              <button class="radio-btn active" data-freq="annual">연 1회</button>
-              <button class="radio-btn" data-freq="quarterly">분기 1회</button>
+              <button class="radio-btn" data-freq="none">안 함</button>
+              <button class="radio-btn active" data-freq="annual">1년마다</button>
+              <button class="radio-btn" data-freq="quarterly">3개월마다</button>
             </div>
           </div>
         </div>
         <div>
           <div class="field">
-            <label>하락구간 정의 (직전고점 대비)</label>
+            <label>하락으로 볼 기준 (전 고점 대비)</label>
             <div class="radio-group" id="thresholdGroup">
               <button class="radio-btn" data-th="-0.05">-5%</button>
               <button class="radio-btn active" data-th="-0.10">-10%</button>
@@ -169,11 +169,11 @@
             </div>
           </div>
           <div class="field">
-            <label>위기일 정의 (H2, 주식 하락률 하위)</label>
+            <label>위기일 기준 <span class="tip" data-tip="아래 오른쪽 '주식-채권 서로 반대로 움직이나' 섹션에서, 주가가 하루 만에 얼마나 떨어진 날을 위기일로 볼지 정합니다. 5%면 주가가 가장 많이 떨어진 5% 날들만 따로 모아 봅니다.">ⓘ</span></label>
             <div class="radio-group" id="crisisGroup">
-              <button class="radio-btn" data-pct="0.01">1%</button>
-              <button class="radio-btn active" data-pct="0.05">5%</button>
-              <button class="radio-btn" data-pct="0.10">10%</button>
+              <button class="radio-btn" data-pct="0.01">가장 심한 1%</button>
+              <button class="radio-btn active" data-pct="0.05">가장 심한 5%</button>
+              <button class="radio-btn" data-pct="0.10">가장 심한 10%</button>
             </div>
           </div>
         </div>
@@ -197,8 +197,8 @@
 
     <!-- H1: 비중별 낙폭 -->
     <div class="card">
-      <div class="section-title">H1. 중도해지 손실 완화 — 비중별 낙폭·회복기간</div>
-      <p class="section-desc">확인하려는 것: 하락장 중간에 돈이 필요해 팔아야 한다면, 채권 비중이 높을수록 손실(낙폭)과 회복까지 걸리는 기간이 실제로 줄어드는가?</p>
+      <div class="section-title">① 하락장에 팔아야 한다면 — 채권 비중별 손실·회복기간</div>
+      <p class="section-desc">하락장 중간에 돈이 필요해 팔아야 한다면, 채권을 섞은 만큼 손실이 줄고 원금 회복도 더 빨라지는지 봅니다.</p>
       <div class="charts-grid">
         <div>
           <canvas id="mddByWeightChart" height="220"></canvas>
@@ -212,7 +212,7 @@
 
     <!-- H1: 하락구간 탐색기 -->
     <div class="card">
-      <div class="card-title big">대표 하락구간별 비중별 손익 곡선 (표에서 구간 클릭)</div>
+      <div class="card-title big">실제 있었던 하락장 자세히 보기 (왼쪽 표에서 클릭)</div>
       <div class="charts-grid" style="grid-template-columns: 340px 1fr">
         <div id="episodeTable"></div>
         <canvas id="episodeChart" height="280"></canvas>
@@ -221,16 +221,16 @@
 
     <!-- H2 -->
     <div class="card">
-      <div class="section-title">H2. 음의 상관관계 (하락장 방어)</div>
-      <p class="section-desc">확인하려는 것: 주가가 급락하는 날, 채권은 반대 방향(가격 상승)으로 움직여 포트폴리오 전체의 낙폭을 상쇄해주는가? 평상시보다 위기 때 더 강하게 작동하는가?</p>
+      <div class="section-title">② 주식이 떨어질 때 채권은 어떻게 움직이나</div>
+      <p class="section-desc">주가가 급락하는 날, 채권 가격은 반대로 오르는 경향이 있는지, 평소보다 위기 때 그 효과가 더 강한지 봅니다.</p>
       <div class="corr-summary" id="corrSummary"></div>
       <div class="h2-grid">
         <div>
-          <div class="card-title big">60일 롤링 상관계수 <span class="tip" data-tip="최근 60거래일 동안 주식-채권 일별 수익률의 상관계수(r). -1에 가까울수록 서로 반대로 움직임, +1에 가까울수록 같은 방향으로 움직임을 뜻합니다.">ⓘ</span></div>
+          <div class="card-title big">최근 60일 기준 함께 움직인 정도 <span class="tip" data-tip="최근 60거래일 동안 주식과 채권이 하루하루 같은 방향으로 움직였는지를 -1~+1 사이 숫자로 나타냅니다. -1에 가까울수록 완전히 반대로, +1에 가까울수록 완전히 같은 방향으로 움직였다는 뜻입니다.">ⓘ</span></div>
           <canvas id="rollingCorrChart" height="230"></canvas>
         </div>
         <div>
-          <div class="card-title big">일별 수익률 산점도</div>
+          <div class="card-title big">하루 수익률 비교 (주식 vs 채권)</div>
           <canvas id="scatterChart" height="230"></canvas>
         </div>
       </div>
@@ -238,8 +238,8 @@
     </div>
 
     <div class="footnote">
-      채권 총수익지수는 만기수익률(YTM) 시계열로부터 constant-maturity par bond 재가격 모델(연1회 이표 가정)로 재구성한 근사치입니다.
-      환율 미고려(달러/원화 각 페어 내에서 독립 계산), 세전 기준. 하락구간은 100% 주식 지수 기준으로 식별되며, 동일 날짜 창에서 비중별 포트폴리오의 실제 손실을 비교합니다.
+      채권 수익률은 매일의 금리(만기수익률)로 10년 만기 채권 가격을 다시 계산해 이어붙인 근사치이며(연 1회 이자지급 가정), 실제 채권 ETF 수익률과 다소 다를 수 있습니다.
+      환율은 반영하지 않았고(달러·원화 각각 따로 계산), 세금 반영 전 수익입니다. 하락 구간은 100% 주식 기준으로 찾은 뒤, 같은 기간 동안 비중별 포트폴리오가 실제로 얼마나 손실을 봤는지 비교합니다.
     </div>
   </div>
 </div>

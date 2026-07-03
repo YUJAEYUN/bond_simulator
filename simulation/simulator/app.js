@@ -448,21 +448,21 @@ function renderSummary() {
 
   document.getElementById('summaryGrid').innerHTML = `
     <div class="metric-tile">
-      <div class="lbl tip" data-tip="투자기간 전체를 연 단위 복리로 환산한 평균 수익률입니다.">연평균 수익률 (CAGR)</div>
+      <div class="lbl tip" data-tip="투자 기간 전체를 1년 단위로 환산했을 때 평균적으로 매년 번 수익률입니다.">연평균 수익률</div>
       <div class="val c-orange" style="font-size:16px">주식 ${fmtPct(cagrEq)}</div>
       <div class="val c-green" style="font-size:16px;margin-top:2px">채권 ${fmtPct(cagrBd)}</div>
-      <div class="sub">혼합(주식${Math.round(state.weight * 100)}%): ${fmtPct(cagrPort)}</div>
+      <div class="sub">지금 설정(주식${Math.round(state.weight * 100)}%): ${fmtPct(cagrPort)}</div>
     </div>
     <div class="metric-tile">
-      <div class="lbl tip" data-tip="투자기간 중 직전 고점 대비 가장 크게 떨어졌던 낙폭입니다. 그 시점에 팔았다면 이만큼 손실을 봤다는 뜻입니다.">최대낙폭 (MDD)</div>
+      <div class="lbl tip" data-tip="가장 비쌀 때(고점) 대비 가장 많이 떨어졌던 순간의 낙폭입니다. 그때 팔았다면 이만큼 손해를 본다는 뜻입니다.">최대로 떨어진 폭</div>
       <div class="val c-orange" style="font-size:16px">주식 ${fmtPct(mddEq)}</div>
       <div class="val c-green" style="font-size:16px;margin-top:2px">채권 ${fmtPct(mddBd)}</div>
-      <div class="sub">혼합(주식${Math.round(state.weight * 100)}%): ${fmtPct(mddPort)}</div>
+      <div class="sub">지금 설정(주식${Math.round(state.weight * 100)}%): ${fmtPct(mddPort)}</div>
     </div>
     <div class="metric-tile">
-      <div class="lbl tip" data-tip="-1은 완전 반대 방향, 0은 무관, +1은 완전 같은 방향으로 움직인다는 뜻입니다. 전체기간 일별 수익률 기준입니다.">주식-채권 상관계수</div>
-      <div class="val ${corr < 0 ? 'c-green' : 'c-red'}">${corr.toFixed(3)}</div>
-      <div class="sub">${corr < -0.15 ? '약한~중간 음의 상관' : corr < 0 ? '거의 무상관에 가까운 약한 음의 상관' : '양의 상관 (분산효과 약함)'}</div>
+      <div class="lbl tip" data-tip="주식과 채권이 같은 날 같은 방향으로 움직였는지를 나타내는 숫자입니다. 0보다 작을수록(음수일수록) 주식이 떨어질 때 채권이 오르는 경향이 강하다는 뜻입니다.">주식과 반대로 움직인 정도</div>
+      <div class="val ${corr < 0 ? 'c-green' : 'c-red'}">${corr.toFixed(2)}</div>
+      <div class="sub">${corr < -0.15 ? '어느 정도 반대로 움직임' : corr < 0 ? '약하게 반대로 움직임' : '오히려 같이 움직임 (방어 효과 약함)'}</div>
     </div>
     <div class="metric-tile">
       <div class="lbl">분석 기간</div>
@@ -472,11 +472,11 @@ function renderSummary() {
   `;
 
   document.getElementById('summaryVerdict').innerHTML = `
-    이 기간 동안 <b>100% 주식</b>은 연평균 ${fmtPct(cagrEq)}, <b>100% 채권</b>은 연평균 ${fmtPct(cagrBd)}을 기록했습니다 —
-    주식이 연 ${((cagrEq - cagrBd) * 100).toFixed(1)}%p 더 벌었지만, 그 대가로 최대낙폭은 채권보다 ${((mddEq - mddBd) * -100).toFixed(1)}%p 더 컸습니다.
-    채권을 일부 섞으면(현재 설정: 주식 ${Math.round(state.weight * 100)}%) 낙폭은 ${fmtPct(mddPort - mddEq)}p 완화되는 대신 CAGR은 ${fmtPct(cagrPort - cagrEq)}p 낮아집니다.
-    즉 <b>채권 장기투자 단독으로는 주식보다 수익이 크게 낮지만</b>, 상관계수가 ${corr.toFixed(2)}로 ${corr < 0 ? '약한 음의 값이라 포트폴리오에 섞였을 때 분산 효과(낙폭 완화)를 기대할 수 있는' : '뚜렷한 음의 상관이 아니라 분산 효과가 크지 않을 수 있는'} 자산입니다.
-    아래 H1·H2 섹션에서 그 근거를 구간별로 직접 확인해보세요.
+    이 기간 동안 <b>주식</b>은 매년 평균 ${fmtPct(cagrEq)}, <b>채권</b>은 매년 평균 ${fmtPct(cagrBd)} 벌었습니다.
+    대신 가장 심하게 떨어졌을 때 주식은 ${fmtPct(mddEq)}, 채권은 ${fmtPct(mddBd)}까지 떨어졌습니다 — <b>채권은 덜 벌지만 덜 떨어집니다.</b>
+    지금처럼 채권을 섞으면(주식 ${Math.round(state.weight * 100)}%) 수익은 ${fmtPct(cagrPort)}로 낮아지는 대신, 최대 낙폭은 ${fmtPct(mddPort)}로 줄어듭니다.
+    또한 둘의 상관계수가 ${corr.toFixed(2)}로 ${corr < 0 ? '주식이 떨어질 때 채권이 반대로 움직이는 경향이 있어서' : '뚜렷하게 반대로 움직이지는 않아서'}, 함께 담았을 때 ${corr < 0 ? '어느 정도 방어 효과를 기대할 수 있습니다.' : '기대만큼 방어 효과가 크지 않을 수 있습니다.'}
+    아래에서 실제 하락장 사례로 더 자세히 확인해보세요.
   `;
 }
 
@@ -501,9 +501,9 @@ function updateWeightDependent() {
   const mddEquity = Math.min(...ddEquity);
 
   document.getElementById('metricsGrid').innerHTML = `
-    <div class="metric-tile"><div class="lbl tip" data-tip="연 단위 복리로 환산한 평균 수익률입니다.">연평균 수익률 (CAGR)</div><div class="val c-blue">${fmtPct(cagr)}</div><div class="sub">100% 주식: ${fmtPct(cagrEquity)}</div></div>
-    <div class="metric-tile"><div class="lbl tip" data-tip="직전 고점 대비 가장 크게 떨어졌던 낙폭입니다.">최대낙폭 (MDD)</div><div class="val c-red">${fmtPct(mdd)}</div><div class="sub">100% 주식: ${fmtPct(mddEquity)}</div></div>
-    <div class="metric-tile"><div class="lbl tip" data-tip="100% 주식 대비 MDD가 얼마나 줄었는지(%포인트)입니다. 양수일수록 낙폭이 더 완화된 것입니다.">낙폭 완화폭</div><div class="val c-green">${fmtPct(mdd - mddEquity)}p</div><div class="sub">100%주식 대비</div></div>
+    <div class="metric-tile"><div class="lbl tip" data-tip="1년 단위로 환산했을 때 평균적으로 매년 번 수익률입니다.">연평균 수익률</div><div class="val c-blue">${fmtPct(cagr)}</div><div class="sub">주식만 100%면: ${fmtPct(cagrEquity)}</div></div>
+    <div class="metric-tile"><div class="lbl tip" data-tip="가장 비쌀 때 대비 가장 많이 떨어졌던 순간의 낙폭입니다.">최대로 떨어진 폭</div><div class="val c-red">${fmtPct(mdd)}</div><div class="sub">주식만 100%면: ${fmtPct(mddEquity)}</div></div>
+    <div class="metric-tile"><div class="lbl tip" data-tip="채권을 섞어서 주식 100%일 때보다 낙폭이 몇%p 줄었는지입니다. 클수록 하락장에서 덜 떨어졌다는 뜻입니다.">낙폭이 줄어든 정도</div><div class="val c-green">${fmtPct(mdd - mddEquity)}p</div><div class="sub">주식 100%와 비교</div></div>
     <div class="metric-tile"><div class="lbl">분석 기간</div><div class="val">${years.toFixed(1)}년</div><div class="sub">${fmtDate(dates[0])} ~ ${fmtDate(dates[dates.length - 1])}</div></div>
   `;
 
@@ -569,16 +569,16 @@ function renderH1() {
   const colors = weights.map(w => CONFIG.gridColors[w]);
 
   charts.mddByWeight = renderBarChart('mddByWeightChart', charts.mddByWeight, labels,
-    weights.map(w => +(agg[w].meanMdd * 100).toFixed(2)), colors, '평균 MDD (%)');
+    weights.map(w => +(agg[w].meanMdd * 100).toFixed(2)), colors, '평균 낙폭 (%)');
   charts.recoveryByWeight = renderBarChart('recoveryByWeightChart', charts.recoveryByWeight, labels,
-    weights.map(w => agg[w].meanRecovery !== null ? +agg[w].meanRecovery.toFixed(0) : 0), colors, '평균 회복일');
+    weights.map(w => agg[w].meanRecovery !== null ? +agg[w].meanRecovery.toFixed(0) : 0), colors, '원금 회복까지 평균 며칠 걸렸나');
 
   const base = agg[1.0].meanMdd;
   const improved = weights.filter(w => w !== 1.0).every(w => agg[w].meanMdd > base);
   document.getElementById('h1Verdict').innerHTML = `
     <div class="verdict ${improved ? 'pass' : 'fail'}">
-      ${episodes.length}개 하락구간(${(state.threshold * 100).toFixed(0)}% 이하) 기준 —
-      ${improved ? '주식 비중이 낮을수록 모든 구간에서 낙폭이 일관되게 완화됨 (H1 지지)' : '비중별 완화 패턴이 일관되지 않음'}
+      지난 ${episodes.length}번의 큰 하락(고점 대비 ${Math.abs(state.threshold * 100).toFixed(0)}% 이상 하락) 기준 —
+      ${improved ? '채권을 많이 섞을수록 모든 하락장에서 손실이 예외 없이 더 적었습니다.' : '채권을 섞는다고 항상 손실이 줄어들지는 않았습니다 (구간마다 결과가 달랐습니다).'}
     </div>`;
 }
 
@@ -603,7 +603,7 @@ function renderBarChart(canvasId, existing, labels, data, colors, yLabel) {
 function renderEpisodeTable() {
   const { episodes } = cache;
   const ranked = episodes.map((e, i) => ({ ...e, idx: i })).sort((a, b) => a.mdd - b.mdd);
-  let html = '<table><thead><tr><th>고점</th><th>주식MDD</th></tr></thead><tbody>';
+  let html = '<table><thead><tr><th>하락 시작일</th><th>주식 낙폭</th></tr></thead><tbody>';
   ranked.forEach(e => {
     const hl = e.idx === state.selectedEpisode ? ' class="hl clickable"' : ' class="clickable"';
     html += `<tr${hl} data-idx="${e.idx}"><td>${fmtDate(e.peakDate)}</td><td class="c-red">${fmtPct(e.mdd, 1)}</td></tr>`;
@@ -655,8 +655,16 @@ function updateH2() {
   const crisisP = pValueForR(crisis.r, crisis.n);
 
   document.getElementById('corrSummary').innerHTML = `
-    <div class="corr-box"><div class="lbl tip" data-tip="투자기간 전체 일별 수익률로 계산한 피어슨 상관계수(r)입니다. 음수일수록 주식이 떨어질 때 채권이 오르는 경향이 강합니다.">전체기간 상관계수</div><div class="val ${full.r < 0 ? 'c-green' : 'c-red'}">${full.r.toFixed(3)}</div><div class="p">n=${full.n}, p=${fullP < 0.001 ? '<0.001' : fullP.toFixed(3)}</div></div>
-    <div class="corr-box"><div class="lbl tip" data-tip="주식이 가장 많이 떨어진 날들(하위 %)만 뽑아서 계산한 상관계수입니다. 평시보다 더 음수라면, 정작 필요한 위기 순간에 채권이 더 강하게 방어해준다는 뜻입니다.">위기구간(하위${Math.round(state.crisisPct * 100)}%) 상관계수</div><div class="val ${crisis.r < 0 ? 'c-green' : 'c-red'}">${crisis.r.toFixed(3)}</div><div class="p">n=${crisis.n}, p=${crisisP < 0.001 ? '<0.001' : crisisP.toFixed(3)}</div></div>
+    <div class="corr-box">
+      <div class="lbl tip" data-tip="투자 기간 전체를 놓고 봤을 때, 주식과 채권이 같은 날 같은 방향으로 움직인 정도입니다. 음수일수록 주식이 떨어질 때 채권이 오르는 경향이 강합니다.">평소 (전체 기간)</div>
+      <div class="val ${full.r < 0 ? 'c-green' : 'c-red'}">${full.r.toFixed(2)}</div>
+      <div class="p tip" data-tip="표본 ${full.n}개, 유의확률 p=${fullP < 0.001 ? '<0.001' : fullP.toFixed(3)}">${fullP < 0.05 ? '우연이 아닐 가능성이 높음' : '표본이 적어 확실치 않음'}</div>
+    </div>
+    <div class="corr-box">
+      <div class="lbl tip" data-tip="주가가 가장 많이 떨어진 날(하위 ${Math.round(state.crisisPct * 100)}%)만 뽑아서 봤을 때의 상관관계입니다. 평소보다 더 음수라면, 정작 필요한 위기 때 채권이 더 강하게 방어해준다는 뜻입니다.">위기 때 (주가 급락일 하위${Math.round(state.crisisPct * 100)}%)</div>
+      <div class="val ${crisis.r < 0 ? 'c-green' : 'c-red'}">${crisis.r.toFixed(2)}</div>
+      <div class="p tip" data-tip="표본 ${crisis.n}개, 유의확률 p=${crisisP < 0.001 ? '<0.001' : crisisP.toFixed(3)}">${crisisP < 0.05 ? '우연이 아닐 가능성이 높음' : '표본이 적어 확실치 않음'}</div>
+    </div>
   `;
 
   const roll = rollingCorrelation(eqRet, bdRet, 60);
@@ -665,7 +673,7 @@ function updateH2() {
   const sampledLabels = [], sampledRoll = [];
   for (let i = 0; i < labels.length; i += step) { sampledLabels.push(labels[i]); sampledRoll.push(isNaN(roll[i]) ? null : +roll[i].toFixed(3)); }
   charts.rollingCorr = renderLineChart('rollingCorrChart', charts.rollingCorr, sampledLabels,
-    [{ label: '60일 롤링 상관계수', data: sampledRoll, color: '#5b9cf6', dash: [] }]);
+    [{ label: '최근 60일 기준 함께 움직인 정도', data: sampledRoll, color: '#5b9cf6', dash: [] }]);
 
   const scatterCtx = document.getElementById('scatterChart').getContext('2d');
   if (charts.scatter) charts.scatter.destroy();
@@ -698,11 +706,11 @@ function updateH2() {
   document.getElementById('h2Verdict').innerHTML = `
     <div class="verdict ${h2Pass ? 'pass' : 'fail'}">
       ${h2Pass
-        ? '전체기간·위기구간 모두 통계적으로 유의한 음의 상관관계 (H2 지지)'
+        ? '평소에도, 특히 위기 때도 채권이 주식과 반대로 움직이는 경향이 뚜렷했습니다 — 방어 효과가 있다고 볼 수 있습니다.'
         : (full.r < 0 && fullP < 0.05
-            ? `전체기간은 유의한 음의 상관관계이나, 위기구간에서는 통계적으로 유의하지 않음(p=${crisisP.toFixed(2)}) — 하락장 방어 효과 단정 불가`
-            : '전체기간·위기구간 모두 유의한 음의 상관관계 확인 안 됨')}
-      ${posYears.length ? ` · 상관계수가 양(+)으로 뒤집힌 연도: ${posYears.join(', ')}` : ''}
+            ? '평소에는 채권이 주식과 반대로 움직였지만, 정작 위기 때는 그 경향이 뚜렷하지 않았습니다 — 하락장 방어 효과를 단정하기는 어렵습니다.'
+            : '평소에도 위기 때도 채권이 주식과 뚜렷하게 반대로 움직인다고 보기는 어려웠습니다.')}
+      ${posYears.length ? ` · 채권이 오히려 주식과 같이 움직인 해: ${posYears.join(', ')}` : ''}
     </div>`;
 }
 
