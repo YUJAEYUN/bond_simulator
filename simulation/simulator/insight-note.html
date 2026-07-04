@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>채권, 오래 들고 있으면 정말 괜찮을까</title>
+<style>
+  :root {
+    --paper: #f3f2ee;
+    --ink: #22231f;
+    --ink-soft: #55534a;
+    --line: #dcd8cc;
+    --stock: #a35f24;
+    --stock-soft: #a35f2414;
+    --bond: #275f5c;
+    --bond-soft: #275f5c14;
+    --card: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #15171a;
+      --ink: #e9e7e0;
+      --ink-soft: #a6a394;
+      --line: #33342f;
+      --stock: #d99457;
+      --stock-soft: #d9945722;
+      --bond: #5ba39d;
+      --bond-soft: #5ba39d22;
+      --card: #1c1e21;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+    margin: 0;
+  }
+  .sheet {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 64px 24px 96px;
+  }
+
+  .eyebrow {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-family: "Noto Serif KR", "Nanum Myeongjo", "AppleMyungjo", Batang, serif;
+    font-size: clamp(28px, 5vw, 40px);
+    line-height: 1.35;
+    font-weight: 700;
+    margin: 0 0 16px;
+    text-wrap: balance;
+  }
+  .thesis {
+    font-size: 16.5px;
+    color: var(--ink-soft);
+    max-width: 56ch;
+    margin: 0 0 40px;
+  }
+
+  h2 {
+    font-family: "Noto Serif KR", "Nanum Myeongjo", "AppleMyungjo", Batang, serif;
+    font-size: 21px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    text-wrap: balance;
+  }
+  .section {
+    margin-top: 56px;
+    padding-top: 28px;
+    border-top: 1px solid var(--line);
+  }
+  .section-num {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+    letter-spacing: 0.04em;
+  }
+  p {
+    margin: 0 0 16px;
+    font-size: 15.5px;
+    max-width: 62ch;
+  }
+  p:last-child { margin-bottom: 0; }
+  .note {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    border-left: 2px solid var(--line);
+    padding-left: 14px;
+    margin: 20px 0;
+    max-width: 58ch;
+  }
+  strong { font-weight: 700; }
+
+  /* TL;DR card */
+  .tldr {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 24px 26px;
+    margin-bottom: 8px;
+  }
+  .tldr-title {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  .tldr ul { margin: 0; padding-left: 20px; }
+  .tldr li { margin-bottom: 10px; font-size: 15px; }
+  .tldr li:last-child { margin-bottom: 0; }
+
+  /* compare bars */
+  .compare {
+    margin: 22px 0 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .compare-row {
+    display: grid;
+    grid-template-columns: 76px 1fr 68px;
+    align-items: center;
+    gap: 12px;
+  }
+  .compare-label {
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+  .compare-label.stock { color: var(--stock); }
+  .compare-label.bond { color: var(--bond); }
+  .compare-track {
+    height: 10px;
+    background: var(--line);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+  .compare-fill { height: 100%; border-radius: 2px; }
+  .compare-fill.stock { background: var(--stock); }
+  .compare-fill.bond { background: var(--bond); }
+  .compare-value {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 14px;
+    text-align: right;
+    font-weight: 600;
+  }
+  .compare-caption {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin-top: -8px;
+    margin-bottom: 20px;
+  }
+
+  .closing {
+    margin-top: 64px;
+    padding: 28px 26px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+  }
+  .closing p {
+    font-size: 16px;
+    max-width: none;
+    margin: 0;
+  }
+
+  @media (max-width: 480px) {
+    .sheet { padding: 40px 18px 72px; }
+    .compare-row { grid-template-columns: 60px 1fr 58px; }
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="eyebrow">채권 노트 · 장기투자 관점 정리</div>
+  <h1>채권, 오래 들고 있으면<br>정말 괜찮을까</h1>
+  <p class="thesis">주식(지수)에 오래 투자하는 것과 비교해서, 채권이 어떤 성격을 가진 자산인지 쉬운 말로 정리했다.</p>
+
+  <div class="tldr">
+    <div class="tldr-title">한눈에 정리</div>
+    <ul>
+      <li>채권은 주식보다 <strong>덜 벌지만 덜 흔들린다.</strong></li>
+      <li>"얼마 벌었나"만 보면 안 되고, <strong>"흔들린 정도에 비해 얼마 벌었나"</strong>로 봐야 공정한 비교다.</li>
+      <li>주식과 채권은 완전히는 아니어도 <strong>어느 정도 반대로 움직인다</strong> — 그래서 섞으면 흔들림이 줄어든다.</li>
+      <li>이론적으로 가장 좋은 방법은 <strong>흔들림 대비 잘 버는 조합을 만들고, 빚(레버리지)으로 크기만 키우는 것</strong>이다.</li>
+      <li>다만 실제로는 빚에 이자와 위험이 따르기 때문에, 보통 사람에게는 <strong>채권을 적당히 섞은 분산 투자</strong>가 더 현실적인 답이다.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-num">1</div>
+    <h2>채권과 주식은 흔들리는 이유부터 다르다</h2>
+    <p>채권 가격은 거의 <strong>금리</strong> 하나로 움직인다. 금리가 오르면 채권값은 내려가고, 내리면 오른다. 반면 주가는 회사 실적, 사람들의 기대, 경기, 그날의 심리까지 여러 가지가 한꺼번에 반영된다. 움직이는 원인의 개수 자체가 다르기 때문에, 주가가 채권보다 훨씬 크게 흔들린다.</p>
+
+    <div class="compare">
+      <div class="compare-row">
+        <div class="compare-label stock">주식</div>
+        <div class="compare-track"><div class="compare-fill stock" style="width:100%"></div></div>
+        <div class="compare-value">+8.55%</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-label bond">채권</div>
+        <div class="compare-track"><div class="compare-fill bond" style="width:45.6%"></div></div>
+        <div class="compare-value">+3.90%</div>
+      </div>
+    </div>
+    <div class="compare-caption">지난 30년, 매년 평균 번 돈 (S&amp;P500 / 미국채 10년물 기준)</div>
+
+    <div class="compare">
+      <div class="compare-row">
+        <div class="compare-label stock">주식</div>
+        <div class="compare-track"><div class="compare-fill stock" style="width:100%"></div></div>
+        <div class="compare-value">-56.81%</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-label bond">채권</div>
+        <div class="compare-track"><div class="compare-fill bond" style="width:47.6%"></div></div>
+        <div class="compare-value">-27.03%</div>
+      </div>
+    </div>
+    <div class="compare-caption">같은 기간, 가장 많이 떨어졌을 때의 낙폭</div>
+  </div>
+
+  <div class="section">
+    <div class="section-num">2</div>
+    <h2>"얼마 벌었나"만 보면 착각하기 쉽다</h2>
+    <p>30년을 놓고 보면 주식이 훨씬 많이 벌었다. 그런데 이것만 보고 "그럼 무조건 주식이 정답"이라고 하면 안 되는 이유가 있다.</p>
+    <p>돈은 벌 때보다 <strong>잃을 때 회복하기가 더 어렵다.</strong> 100만원이 반토막 나서 50만원이 되면(-50%), 다시 100만원으로 돌아가려면 50만원에서 +100%를 벌어야 한다. 떨어진 비율보다 회복해야 할 비율이 항상 더 크다.</p>
+    <p>그래서 크게 흔들리는 자산은, 평균적으로 버는 돈이 같아 보여도 실제로 손에 남는 돈은 더 적어질 수 있다.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-num">3</div>
+    <h2>진짜 비교 기준은 "번 돈 ÷ 흔들린 정도"</h2>
+    <p>수익률만 보지 말고, 그 수익을 벌기 위해 얼마나 크게 흔들렸는지도 같이 봐야 공정한 비교가 된다. 번 돈을 흔들린 정도로 나눈 값이 클수록, 같은 위험을 지고 더 효율적으로 번 것이다.</p>
+
+    <div class="compare">
+      <div class="compare-row">
+        <div class="compare-label stock">주식 100%</div>
+        <div class="compare-track"><div class="compare-fill stock" style="width:53%"></div></div>
+        <div class="compare-value">0.45</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-label bond">주식 40%</div>
+        <div class="compare-track"><div class="compare-fill bond" style="width:100%"></div></div>
+        <div class="compare-value">0.85</div>
+      </div>
+    </div>
+    <div class="compare-caption">번 돈 ÷ 흔들린 정도 — 주식을 40%만 남기고 채권을 섞은 조합이 거의 2배 더 효율적</div>
+  </div>
+
+  <div class="section">
+    <div class="section-num">4</div>
+    <h2>채권을 섞으면 왜 흔들림이 줄어드나</h2>
+    <p>경기가 나빠지고 주가가 떨어지는 시기엔, 사람들이 안전한 자산을 찾아 채권으로 몰리는 경우가 많다. 그러면 채권값은 오히려 오른다. 그래서 주식이 떨어질 때 채권이 그 충격을 어느 정도 상쇄해준다.</p>
+    <p>실제로 이 둘의 관계는 <strong>-0.28</strong> 정도다. 완전히 반대는 아니지만, 약하게 반대로 움직이는 편이다.</p>
+    <div class="note">이 관계는 시대마다 조금씩 바뀐다. 물가가 갑자기 크게 뛰는 시기엔 오히려 둘 다 같이 떨어지기도 한다. 2022년이 그런 해였다.</div>
+  </div>
+
+  <div class="section">
+    <div class="section-num">5</div>
+    <h2>이론적으로 가장 좋은 방법</h2>
+    <p>흔들림 대비 가장 잘 버는 조합(3번에서 찾은 것)을 만들어두고, 그 조합 전체에 <strong>빚(레버리지)</strong>을 걸어 원하는 만큼 위험 크기를 키우는 것 — 이게 이론적으로 가장 좋은 방법이다.</p>
+
+    <div class="compare">
+      <div class="compare-row">
+        <div class="compare-label stock">주식 100%</div>
+        <div class="compare-track"><div class="compare-fill stock" style="width:53%"></div></div>
+        <div class="compare-value">+8.55%</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-label bond">빚 낸 조합</div>
+        <div class="compare-track"><div class="compare-fill bond" style="width:100%"></div></div>
+        <div class="compare-value">+16.16%</div>
+      </div>
+    </div>
+    <div class="compare-caption">"흔들림 대비 잘 버는 조합"에 빚을 걸어, 주식 100%와 같은 흔들림 크기로 맞췄을 때의 이론상 기대치</div>
+
+    <p>실제로 이런 논리로 만들어진 상품도 있다. 채권을 섞은 조합에 미리 빚(레버리지)이 걸려 있어서, 주식만 담은 것과 비슷한 크기로 흔들리면서 더 버는 걸 노리는 상품들이다.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-num">6</div>
+    <h2>그런데 현실에서는</h2>
+    <p>위 계산은 빚을 공짜로 빌린다고 가정한 것이다. 실제로는 그렇지 않다.</p>
+    <ul>
+      <li><strong>빚에는 이자가 붙는다.</strong> 계산했던 수익에서 이자만큼 깎인다.</li>
+      <li><strong>흔들림이 큰 상태에서 빚을 쓰면, 손실도 더 크게 증폭된다.</strong></li>
+      <li><strong>크게 떨어지면 빚을 강제로 갚아야 할 수도 있다</strong> — 하필 가장 안 좋은 시점에 팔게 될 위험이다.</li>
+      <li><strong>채권을 회사채나 정크본드로 바꿔서 더 높은 수익을 노리면</strong>, 위기 때 오히려 주식과 같이 떨어지는 성격으로 바뀔 수 있다. 애초에 채권을 섞은 이유(4번)가 사라지는 셈이다.</li>
+      <li><strong>해외 채권은 환율 변동이 섞인다.</strong> 채권 자체의 흔들림보다 환율의 흔들림이 더 커지는 경우도 많다.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-num">7</div>
+    <h2>적립식으로 오래 투자하는 사람에게, 실질적인 결론</h2>
+    <p>이론만 따지면, 나이가 젊을수록(투자 기간이 길수록) 분산된 조합에 빚을 걸고, 나이가 들수록 그 빚을 줄여나가는 게 가장 효율적이다. 앞으로 벌어들일 월급 같은 미래 소득 자체가, 채권처럼 안정적인 자산 역할을 대신해주기 때문이다.</p>
+    <p>다만 보통 사람은 싼 이자로 빚을 구하기 어렵고, 강제로 손절당할 위험도 있다. 그래서 전문가들이 실제로 가장 많이 권하는 방법은 더 단순하다: <strong>빚 없이, 여러 나라 주식과 채권에 널리 나눠 담아 꾸준히 적립하고, 나이가 들수록 채권 비중을 서서히 늘려가는 것.</strong></p>
+  </div>
+
+  <div class="closing">
+    <p>채권은 <strong>"더 많이 버는 자산"이 아니라 "덜 흔들리게 도와주는 자산"</strong>이다. 그 흔들림을 줄이는 게 왜 중요한지 알면, 채권을 얼마나 섞을지는 결국 각자의 투자 기간과 마음의 크기에 달린 문제가 된다.</p>
+  </div>
+
+</div>
+</body>
+</html>
