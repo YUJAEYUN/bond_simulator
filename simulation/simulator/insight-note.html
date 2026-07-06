@@ -192,6 +192,8 @@
   <h1>채권, 오래 들고 있으면<br>정말 괜찮을까</h1>
   <p class="thesis">주식(지수)에 오래 투자하는 것과 비교해서, 채권이 어떤 성격을 가진 자산인지 쉬운 말로 정리했다.</p>
 
+  <div class="note">개인이 국채를 원물로 사기는 어려우니, <strong>채권 ETF에 적립식으로 오래 투자하면서 나오는 이자·분배금을 계속 재투자</strong>하는 상황을 가정했다. (실제 계산은 ETF의 실거래 가격이 아니라, 매일의 만기수익률로 "10년 만기를 계속 유지하는 채권"을 재구성한 근사치를 썼다 — 방향성과 상대적 비교에는 무리가 없지만 절대 수익률 값은 근사치임을 감안해야 한다.)</div>
+
   <div class="tldr">
     <div class="tldr-title">한눈에 정리</div>
     <ul>
@@ -247,6 +249,42 @@
 
   <div class="section">
     <div class="section-num">3</div>
+    <h2>그럼 "흔들리는 만큼"을 맞춰서 다시 비교하면?</h2>
+    <p>채권은 원래 잘 안 흔들리는 자산이니 공정하지 않은 비교일 수 있다. 그래서 채권에 빚(레버리지)을 걸어 <strong>주식과 똑같은 크기로 흔들리도록 맞춘 다음</strong> 다시 비교해봤다. (여기서는 빚에 붙는 이자·수수료는 아직 빼지 않았다 — 실제로는 이보다 결과가 더 나쁠 수 있다.)</p>
+
+    <div class="compare">
+      <div class="compare-row">
+        <div class="compare-label stock">S&amp;P500</div>
+        <div class="compare-track"><div class="compare-fill stock" style="width:99.4%"></div></div>
+        <div class="compare-value">0.527</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-label bond">미국채(레버리지)</div>
+        <div class="compare-track"><div class="compare-fill bond" style="width:100%"></div></div>
+        <div class="compare-value">0.530</div>
+      </div>
+    </div>
+    <div class="compare-caption">번 돈 ÷ 흔들린 정도 — 미국채를 주식과 같은 흔들림까지 레버리지 걸면 거의 동률</div>
+
+    <div class="compare">
+      <div class="compare-row">
+        <div class="compare-label stock">KOSPI</div>
+        <div class="compare-track"><div class="compare-fill stock" style="width:100%"></div></div>
+        <div class="compare-value">0.627</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-label bond">한국채(레버리지)</div>
+        <div class="compare-track"><div class="compare-fill bond" style="width:72.2%"></div></div>
+        <div class="compare-value">0.453</div>
+      </div>
+    </div>
+    <div class="compare-caption">한국은 채권에 레버리지를 걸어 흔들림을 맞춰도 KOSPI를 따라가지 못한다</div>
+
+    <p><strong>즉 채권 혼자서는 (레버리지를 걸어도) 주식을 이기지 못한다</strong> — 미국은 거의 같은 수준까지 따라붙지만, 한국은 확실히 못 따라간다. "그럼 채권은 장기투자로 주식보다 안 좋은 자산"이라고 결론짓기 쉬운데, 둘을 <strong>섞어서</strong> 비교하면 얘기가 완전히 달라진다.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-num">4</div>
     <h2>진짜 비교 기준은 "번 돈 ÷ 흔들린 정도"</h2>
     <p>수익률만 보지 말고, 그 수익을 벌기 위해 얼마나 크게 흔들렸는지도 같이 봐야 공정한 비교가 된다. 번 돈을 흔들린 정도로 나눈 값이 클수록, 같은 위험을 지고 더 효율적으로 번 것이다.</p>
 
@@ -263,10 +301,12 @@
       </div>
     </div>
     <div class="compare-caption">번 돈 ÷ 흔들린 정도 — 주식을 40%만 남기고 채권을 섞은 조합이 거의 2배 더 효율적</div>
+
+    <p>3번에서 "채권은 혼자서는 못 이긴다"고 했는데, 왜 섞으면 갑자기 결과가 좋아질까? <strong>번 돈(기대수익)과 흔들림(변동성)이 섞이는 방식 자체가 다르기 때문이다.</strong> 번 돈은 "주식 비중만큼 + 채권 비중만큼"처럼 정직하게 그대로 더해진다. 그런데 흔들림은 그렇게 단순하게 더해지지 않고, <strong>각 비중을 제곱해서 계산</strong>한다. 그래서 둘이 완전히 같은 방향으로만 움직이는 게 아니라면(반대로 움직일수록 더 크게), 섞었을 때의 흔들림은 늘 "단순히 평균 낸 것"보다 더 많이 줄어든다. 번 돈은 정직하게 줄어드는데 흔들림은 그보다 더 크게 줄어드는 구간이 생기고, 그 구간에서 "번 돈 ÷ 흔들림"이 오히려 좋아지는 것이다.</p>
   </div>
 
   <div class="section">
-    <div class="section-num">4</div>
+    <div class="section-num">5</div>
     <h2>채권을 섞으면 왜 흔들림이 줄어드나</h2>
     <p>경기가 나빠지고 주가가 떨어지는 시기엔, 사람들이 안전한 자산을 찾아 채권으로 몰리는 경우가 많다. 그러면 채권값은 오히려 오른다. 그래서 주식이 떨어질 때 채권이 그 충격을 어느 정도 상쇄해준다.</p>
     <p>실제로 이 둘의 관계는 <strong>-0.28</strong> 정도다. 완전히 반대는 아니지만, 약하게 반대로 움직이는 편이다.</p>
@@ -274,9 +314,9 @@
   </div>
 
   <div class="section">
-    <div class="section-num">5</div>
+    <div class="section-num">6</div>
     <h2>이론적으로 가장 좋은 방법</h2>
-    <p>흔들림 대비 가장 잘 버는 조합(3번에서 찾은 것)을 만들어두고, 그 조합 전체에 <strong>빚(레버리지)</strong>을 걸어 원하는 만큼 위험 크기를 키우는 것 — 이게 이론적으로 가장 좋은 방법이다.</p>
+    <p>흔들림 대비 가장 잘 버는 조합(4번에서 찾은 것)을 만들어두고, 그 조합 전체에 <strong>빚(레버리지)</strong>을 걸어 원하는 만큼 위험 크기를 키우는 것 — 이게 이론적으로 가장 좋은 방법이다.</p>
 
     <div class="compare">
       <div class="compare-row">
@@ -292,11 +332,11 @@
     </div>
     <div class="compare-caption">"흔들림 대비 잘 버는 조합"에 빚을 걸어, 주식 100%와 같은 흔들림 크기로 맞췄을 때의 이론상 기대치</div>
 
-    <p>실제로 이런 논리로 만들어진 상품도 있다. 채권을 섞은 조합에 미리 빚(레버리지)이 걸려 있어서, 주식만 담은 것과 비슷한 크기로 흔들리면서 더 버는 걸 노리는 상품들이다.</p>
+    <p>실제로 이런 논리로 만들어진 상품도 있다. 채권을 섞은 조합에 미리 빚(레버리지)이 걸려 있어서, 주식만 담은 것과 비슷한 크기로 흔들리면서 더 버는 걸 노리는 상품들이다. 대표적으로 미국의 <strong>NTSX</strong>(WisdomTree US Efficient Core — 주식 90% + 채권선물로 60%를 얹어 실질 150% 노출), <strong>RSSB</strong>(Return Stacked Global Stocks &amp; Bonds — 주식 100% + 국채 100%를 그대로 겹쳐 쌓는 방식) 같은 ETF가 있다.</p>
   </div>
 
   <div class="section">
-    <div class="section-num">6</div>
+    <div class="section-num">7</div>
     <h2>그런데 현실에서는</h2>
     <p>위 계산은 빚을 공짜로 빌린다고 가정한 것이다. 실제로는 그렇지 않다.</p>
     <ul>
@@ -309,7 +349,7 @@
   </div>
 
   <div class="section">
-    <div class="section-num">7</div>
+    <div class="section-num">8</div>
     <h2>적립식으로 오래 투자하는 사람에게, 실질적인 결론</h2>
     <p>이론만 따지면, 나이가 젊을수록(투자 기간이 길수록) 분산된 조합에 빚을 걸고, 나이가 들수록 그 빚을 줄여나가는 게 가장 효율적이다. 앞으로 벌어들일 월급 같은 미래 소득 자체가, 채권처럼 안정적인 자산 역할을 대신해주기 때문이다.</p>
     <p>다만 보통 사람은 싼 이자로 빚을 구하기 어렵고, 강제로 손절당할 위험도 있다. 그래서 전문가들이 실제로 가장 많이 권하는 방법은 더 단순하다: <strong>빚 없이, 여러 나라 주식과 채권에 널리 나눠 담아 꾸준히 적립하고, 나이가 들수록 채권 비중을 서서히 늘려가는 것.</strong></p>
