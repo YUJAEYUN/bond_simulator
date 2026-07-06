@@ -236,7 +236,8 @@
         <div class="compare-value">+4.83%</div>
       </div>
     </div>
-    <div class="compare-caption">같은 방식으로, KOSPI는 1996~2026(30.4년) 전체, 한국채는 2000.10~2026.05(25.6년) 매년 평균 번 돈. 한국 10년물 국채는 2000년대 초에야 발행되기 시작해서 그 이전 데이터 자체가 없다 — KOSPI의 이 30.4년에는 1997년 외환위기(당시 -68% 폭락)가 포함돼 있지만, 한국채는 데이터가 없어 그 위기를 겪어보지 못했다. 그래서 3번 이후 "섞어서" 분석하는 부분은 두 데이터가 같이 있는 2000.10~2026 구간만 쓴다 — 그 구간의 KOSPI 연평균 수익률은 9.10%로, 위 7.61%보다 높다(위기 구간이 빠지기 때문).</div>
+    <div class="compare-caption">같은 방식으로, KOSPI는 1996~2026(30.4년), 한국채는 2000.10~2026.05(25.6년) 기준 매년 평균 번 돈</div>
+    <div class="note">한국 10년물 국채는 2000년대 초부터 데이터가 있어 그 이전은 비교할 수 없다. 이 30.4년엔 1997년 외환위기(-68% 폭락)가 포함되지만, 3번부터 나오는 "섞어서" 보는 분석은 두 데이터가 겹치는 2000년 이후 구간만 써서 그 위기가 빠져 있다.</div>
 
     <div class="compare">
       <div class="compare-row">
@@ -250,7 +251,8 @@
         <div class="compare-value">-27.03%</div>
       </div>
     </div>
-    <div class="compare-caption">각자 자기 역사상 가장 많이 떨어졌을 때의 낙폭 — 주식은 2007.10~2009.03(금융위기, 회복까지 4년), 채권은 2020.08~2023.10(금리 급등기, 아직 미회복). 서로 다른 시기다 — 참고로 주식이 저 -56.81%를 겪던 2007~2009년 그 기간 동안 채권은 겨우 -0.22%만 떨어졌다.</div>
+    <div class="compare-caption">각자 자기 역사상 가장 많이 떨어졌을 때의 낙폭 — 주식은 2007.10~2009.03(금융위기), 채권은 2020.08~2023.10(금리 급등기). 서로 다른 시기다.</div>
+    <div class="note">주식이 저 -56.81%를 겪던 2007~2009년 그 기간 동안 채권은 겨우 -0.22%만 떨어졌다. (주식 회복까지 4년, 채권은 아직 미회복.)</div>
   </div>
 
   <div class="section">
@@ -266,31 +268,32 @@
     <div class="section-num">3</div>
     <h2>그럼 "흔들리는 만큼"을 맞춰서 다시 비교하면?</h2>
     <p>채권은 주식에 비해 잘 안 흔들리는 자산이니 공정하지 않은 비교일 수 있다. 그래서 채권에 빚(레버리지)을 걸어 <strong>주식과 똑같은 크기로 흔들리도록 맞춘 다음</strong> 다시 비교해봤다. (여기서는 빚에 붙는 이자·수수료는 아직 빼지 않았다 — 실제로는 이보다 결과가 더 나쁠 수 있다.)</p>
+    <div class="note">여기서부터 쓰는 "번 돈 ÷ 흔들린 정도"라는 숫자는 금융에서 <strong>샤프비율(Sharpe Ratio)</strong>이라 부르는 값이다. 정확히는 (수익률 − 무위험수익률) ÷ 변동성인데, 여기서는 무위험수익률을 0으로 두고 단순화했다.</div>
 
     <div class="compare">
       <div class="compare-row">
         <div class="compare-label stock">S&amp;P500</div>
-        <div class="compare-track"><div class="compare-fill stock" style="width:99.4%"></div></div>
-        <div class="compare-value">0.527</div>
+        <div class="compare-track"><div class="compare-fill stock" style="width:99.3%"></div></div>
+        <div class="compare-value">0.448</div>
       </div>
       <div class="compare-row">
         <div class="compare-label bond">미국채(레버리지)</div>
         <div class="compare-track"><div class="compare-fill bond" style="width:100%"></div></div>
-        <div class="compare-value">0.530</div>
+        <div class="compare-value">0.451</div>
       </div>
     </div>
-    <div class="compare-caption">번 돈 ÷ 흔들린 정도 — 미국채를 주식과 같은 흔들림까지 레버리지 걸면 거의 동률</div>
+    <div class="compare-caption">샤프비율 — 미국채를 주식과 같은 흔들림까지 레버리지 걸면 거의 동률</div>
 
     <div class="compare">
       <div class="compare-row">
         <div class="compare-label stock">KOSPI</div>
         <div class="compare-track"><div class="compare-fill stock" style="width:100%"></div></div>
-        <div class="compare-value">0.627</div>
+        <div class="compare-value">0.394</div>
       </div>
       <div class="compare-row">
         <div class="compare-label bond">한국채(레버리지)</div>
-        <div class="compare-track"><div class="compare-fill bond" style="width:72.2%"></div></div>
-        <div class="compare-value">0.453</div>
+        <div class="compare-track"><div class="compare-fill bond" style="width:79.2%"></div></div>
+        <div class="compare-value">0.312</div>
       </div>
     </div>
     <div class="compare-caption">한국은 채권에 레버리지를 걸어 흔들림을 맞춰도 KOSPI를 따라가지 못한다</div>
@@ -301,22 +304,21 @@
   <div class="section">
     <div class="section-num">4</div>
     <h2>진짜 비교 기준은 "번 돈 ÷ 흔들린 정도"</h2>
-    <p>수익률만 보지 말고, 그 수익을 벌기 위해 얼마나 크게 흔들렸는지도 같이 봐야 공정한 비교가 된다. 번 돈을 흔들린 정도로 나눈 값이 클수록, 같은 위험을 지고 더 효율적으로 번 것이다.</p>
-    <div class="note">이 "번 돈 ÷ 흔들린 정도"를 금융에서는 <strong>샤프비율(Sharpe Ratio)</strong>이라 부른다. 정확히는 (수익률 − 무위험수익률) ÷ 변동성으로 계산하는데, 여기서는 이해를 돕기 위해 무위험수익률을 0으로 두고 단순화했다. 앞의 3번에 나온 0.527, 0.530, 0.627, 0.453 같은 숫자도 전부 이 샤프비율이다.</div>
+    <p>수익률만 보지 말고, 그 수익을 벌기 위해 얼마나 크게 흔들렸는지도 같이 봐야 공정한 비교가 된다. 번 돈을 흔들린 정도로 나눈 값이 클수록, 같은 위험을 지고 더 효율적으로 번 것이다. (3번에서 쓴 샤프비율과 같은 값이다.)</p>
 
     <div class="compare">
       <div class="compare-row">
         <div class="compare-label stock">주식 100%</div>
-        <div class="compare-track"><div class="compare-fill stock" style="width:53%"></div></div>
-        <div class="compare-value">0.45</div>
+        <div class="compare-track"><div class="compare-fill stock" style="width:55.4%"></div></div>
+        <div class="compare-value">0.448</div>
       </div>
       <div class="compare-row">
         <div class="compare-label bond">주식 40%</div>
         <div class="compare-track"><div class="compare-fill bond" style="width:100%"></div></div>
-        <div class="compare-value">0.85</div>
+        <div class="compare-value">0.808</div>
       </div>
     </div>
-    <div class="compare-caption">번 돈 ÷ 흔들린 정도 — 주식을 40%만 남기고 채권을 섞은 조합이 거의 2배 더 효율적</div>
+    <div class="compare-caption">샤프비율 — 주식을 40%만 남기고 채권을 섞은 조합이 거의 2배 더 효율적</div>
 
     <p>3번에서 "채권은 혼자서는 못 이긴다"고 했는데, 왜 섞으면 갑자기 결과가 좋아질까? <strong>번 돈(기대수익)과 흔들림(변동성)이 섞이는 방식 자체가 다르기 때문이다.</strong> 번 돈은 "주식 비중만큼 + 채권 비중만큼"처럼 정직하게 그대로 더해진다. 그런데 흔들림은 그렇게 단순하게 더해지지 않고, <strong>각 비중을 제곱해서 계산</strong>한다. 그래서 둘이 완전히 같은 방향으로만 움직이는 게 아니라면(반대로 움직일수록 더 크게), 섞었을 때의 흔들림은 늘 "단순히 평균 낸 것"보다 더 많이 줄어든다. 번 돈은 정직하게 줄어드는데 흔들림은 그보다 더 크게 줄어드는 구간이 생기고, 그 구간에서 "번 돈 ÷ 흔들림"이 오히려 좋아지는 것이다.</p>
   </div>
@@ -338,13 +340,13 @@
     <div class="compare">
       <div class="compare-row">
         <div class="compare-label stock">주식 100%</div>
-        <div class="compare-track"><div class="compare-fill stock" style="width:53%"></div></div>
+        <div class="compare-track"><div class="compare-fill stock" style="width:56.3%"></div></div>
         <div class="compare-value">+8.55%</div>
       </div>
       <div class="compare-row">
         <div class="compare-label bond">빚 낸 조합</div>
         <div class="compare-track"><div class="compare-fill bond" style="width:100%"></div></div>
-        <div class="compare-value">+16.16%</div>
+        <div class="compare-value">+15.18%</div>
       </div>
     </div>
     <div class="compare-caption">"흔들림 대비 잘 버는 조합"에 빚을 걸어, 주식 100%와 같은 흔들림 크기로 맞췄을 때의 이론상 기대치</div>
