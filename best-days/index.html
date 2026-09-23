@@ -130,7 +130,7 @@
 <body>
 <div class="container">
   <h1>Best Days 제거 시뮬레이터</h1>
-  <p class="subtitle">상위 수익일 N개를 0%로 교체했을 때 연평균 수익률이 얼마나 달라지는지 시뮬레이션합니다</p>
+  <p class="subtitle">상위 수익일 N개를 0%로 교체했을 때 연복리 수익률이 얼마나 달라지는지 시뮬레이션합니다</p>
 
   <div id="loading">
     <div class="spinner"></div>
@@ -362,7 +362,7 @@ function renderMetricCard(elId, title, color, st, n) {
         <span class="metric-val c-green">${fmtPct(st.origTotal, 0)}</span>
       </div>
       <div class="metric-row">
-        <span class="metric-name tip" data-tip="복리 기준 연평균 수익률&#10;공식: (최종배수)^(1/년수) − 1&#10;단순 평균보다 정직한 수치">연평균 수익률</span>
+        <span class="metric-name tip" data-tip="복리 기준 연복리 수익률&#10;공식: (최종배수)^(1/년수) − 1&#10;단순 평균보다 정직한 수치">연복리 수익률</span>
         <span class="metric-val xl" style="color:${cv}">${fmtPct(st.origCagr)}</span>
       </div>
     </div>
@@ -374,7 +374,7 @@ function renderMetricCard(elId, title, color, st, n) {
         <span class="metric-val c-red">${fmtPct(st.modTotal, 0)}</span>
       </div>
       <div class="metric-row">
-        <span class="metric-name tip" data-tip="상위 ${n}일 제거 후 재계산한 수익률&#10;공식: (수정된 최종배수)^(1/년수) − 1">연평균 수익률</span>
+        <span class="metric-name tip" data-tip="상위 ${n}일 제거 후 재계산한 수익률&#10;공식: (수정된 최종배수)^(1/년수) − 1">연복리 수익률</span>
         <span class="metric-val xl c-red">${fmtPct(st.modCagr)}</span>
       </div>
     </div>
