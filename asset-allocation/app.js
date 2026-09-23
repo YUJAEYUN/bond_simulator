@@ -370,11 +370,7 @@ function renderSummary() {
   `;
 
   document.getElementById('summaryVerdict').innerHTML = `
-    이 기간 동안 <b>주식</b>은 매년 평균 ${fmtPct(cagrEq)}, <b>채권</b>은 매년 평균 ${fmtPct(cagrBd)} 벌었습니다.
-    대신 가장 심하게 떨어졌을 때 주식은 ${fmtPct(mddEq)}, 채권은 ${fmtPct(mddBd)}까지 떨어졌습니다 — <b>채권은 덜 벌지만 덜 떨어집니다.</b>
-    지금처럼 채권을 섞으면(주식 ${Math.round(state.weight * 100)}%) 수익은 ${fmtPct(cagrPort)}로 낮아지는 대신, 최대 낙폭은 ${fmtPct(mddPort)}로 줄어듭니다.
-    또한 둘의 상관계수가 ${corr.toFixed(2)}로 ${corr < 0 ? '주식이 떨어질 때 채권이 반대로 움직이는 경향이 있어서' : '뚜렷하게 반대로 움직이지는 않아서'}, 함께 담았을 때 ${corr < 0 ? '어느 정도 방어 효과를 기대할 수 있습니다.' : '기대만큼 방어 효과가 크지 않을 수 있습니다.'}
-    아래에서 이 관계와 위험 대비 수익 효율을 더 자세히 확인해보세요.
+    <b>채권은 덜 벌지만 덜 떨어집니다.</b> 상관계수 ${corr.toFixed(2)}로 ${corr < 0 ? '주식이 떨어질 때 채권이 반대로 움직이는 경향이 있어, 함께 담으면 어느 정도 방어 효과를 기대할 수 있습니다.' : '뚜렷하게 반대로 움직이지는 않아, 기대만큼 방어 효과가 크지 않을 수 있습니다.'}
   `;
 }
 
@@ -595,9 +591,9 @@ function renderH3() {
   document.getElementById('h3Verdict').innerHTML = `
     <div class="verdict ${leveredReturn > eq.cagr ? 'pass' : 'fail'}">
       ${leveredReturn > eq.cagr
-        ? `현재 표본과 여섯 비중 중에서는 주식 ${Math.round(bestW * 100)}% 조합의 CAGR/변동성이 가장 높았습니다. 이 조합의 CAGR은 ${fmtPct(best.cagr)}, 주식 단독은 ${fmtPct(eq.cagr)}입니다. 수익률의 크기와 변동성 대비 수익을 구분해 비교할 수 있습니다.`
-        : `현재 표본과 여섯 비중 중에서는 주식 100%의 CAGR/변동성이 가장 높았습니다. 다른 기간이나 비용 조건에서도 같은 결과가 나오는지는 별도로 확인해야 합니다.`}
-      위 배수 예시는 '투자 규모를 키우면 어떻게 될까'라는 생각을 숫자로 보여준 것뿐입니다. 복리 효과, 차입 비용, 강제 청산까지 반영한 실제 성과가 아니며, 변동성이 같다고 해서 최대 손실까지 같다는 뜻도 아닙니다.
+        ? `주식 ${Math.round(bestW * 100)}% 조합의 CAGR/변동성이 가장 높았습니다.`
+        : `주식 100%의 CAGR/변동성이 가장 높았습니다.`}
+      배수 예시는 투자 규모를 키우면 어떻게 될지 보여주는 계산일 뿐, 실제 레버리지 성과가 아닙니다.
     </div>`;
 }
 
