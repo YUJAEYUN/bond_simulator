@@ -1,6 +1,7 @@
 # Bond Simulator
 
 - 자산배분 시뮬레이터: https://bond-simulator-lac.vercel.app/
+- Best Days 제거 시뮬레이터: https://chipper-meringue-d3e144.netlify.app/
 
 Bond Simulator는 주식과 채권의 장기 투자 성과와 위험을 비교하는 백테스팅 프로젝트다. KOSPI·S&P500과 한국·미국 10년물 국채 데이터를 바탕으로 자산별 수익률, 하락폭, 회복기간, 상관관계, 비중별 위험 대비 수익을 분석하고 브라우저 시뮬레이터로 시각화했다.
 
