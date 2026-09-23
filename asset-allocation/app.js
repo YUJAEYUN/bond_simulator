@@ -580,12 +580,12 @@ function renderH3() {
         <div class="p">변동성 ${fmtPlainPct(eq.vol)} · CAGR/변동성 ${eq.sharpe.toFixed(2)}</div>
       </div>
       <div class="corr-box">
-        <div class="lbl tip" data-tip="현재 표본에서 주식 0·20·40·60·80·100% 중 CAGR/변동성이 가장 높은 조합입니다. 미래의 최적 비중을 뜻하지 않습니다.">비교한 비중 중 지표 최고 (주식 ${Math.round(bestW * 100)}%)</div>
+        <div class="lbl tip" data-tip="지금 살펴본 표본에서, 주식 0·20·40·60·80·100% 여섯 가지 비중 중 CAGR/변동성이 가장 높았던 조합입니다. 앞으로도 이 비중이 최선이라는 뜻은 아닙니다.">비교한 비중 중 지표 최고 (주식 ${Math.round(bestW * 100)}%)</div>
         <div class="val c-blue">${fmtPct(best.cagr)}</div>
         <div class="p">변동성 ${fmtPlainPct(best.vol)} · CAGR/변동성 ${best.sharpe.toFixed(2)}</div>
       </div>
       <div class="corr-box">
-        <div class="lbl tip" data-tip="주식 변동성 ÷ 혼합 변동성으로 얻은 ${lev.toFixed(2)}배를 혼합 CAGR에 곱한 값입니다. CAGR은 레버리지에 비례하지 않으므로 실제 레버리지 전략의 연복리 수익률로 해석할 수 없습니다. 일별 수익 경로와 차입비용 등을 반영한 별도 백테스트가 필요합니다.">변동성을 맞춘 단순 배수 예시</div>
+        <div class="lbl tip" data-tip="주식 단독 변동성을 혼합 변동성으로 나누면 ${lev.toFixed(2)}배가 나옵니다. 이 배수를 혼합 CAGR에 곱한 값입니다. CAGR은 레버리지 배수만큼 그대로 늘어나지 않으므로, 이 값을 실제 레버리지 전략의 수익률로 볼 수는 없습니다. 실제 수익률을 알려면 매일의 수익 흐름과 차입 비용 등을 반영한 별도 백테스트가 필요합니다.">변동성을 맞춘 단순 배수 예시</div>
         <div class="val ${leveredReturn > eq.cagr ? 'c-green' : 'c-red'}">${fmtPct(leveredReturn)}</div>
         <div class="p">CAGR × ${lev.toFixed(2)} · 레버리지 백테스트 결과 아님</div>
       </div>
@@ -597,7 +597,7 @@ function renderH3() {
       ${leveredReturn > eq.cagr
         ? `현재 표본과 여섯 비중 중에서는 주식 ${Math.round(bestW * 100)}% 조합의 CAGR/변동성이 가장 높았습니다. 이 조합의 CAGR은 ${fmtPct(best.cagr)}, 주식 단독은 ${fmtPct(eq.cagr)}입니다. 수익률의 크기와 변동성 대비 수익을 구분해 비교할 수 있습니다.`
         : `현재 표본과 여섯 비중 중에서는 주식 100%의 CAGR/변동성이 가장 높았습니다. 다른 기간이나 비용 조건에서도 같은 결과가 나오는지는 별도로 확인해야 합니다.`}
-      위 배수 예시는 투자 규모를 조절한다는 생각을 설명하는 산술값입니다. 복리 효과·차입비용·강제청산을 반영한 성과가 아니며, 같은 변동성이 같은 최대손실을 뜻하지도 않습니다.
+      위 배수 예시는 '투자 규모를 키우면 어떻게 될까'라는 생각을 숫자로 보여준 것뿐입니다. 복리 효과, 차입 비용, 강제 청산까지 반영한 실제 성과가 아니며, 변동성이 같다고 해서 최대 손실까지 같다는 뜻도 아닙니다.
     </div>`;
 }
 
