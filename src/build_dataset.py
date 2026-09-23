@@ -1,4 +1,4 @@
-"""원본 업로드 CSV를 이어붙여 simulation/data/ 아래 표준 포맷(date, close, change_pct)으로 저장."""
+"""원본 업로드 CSV를 이어붙여 data/ 아래 표준 포맷(date, close, change_pct)으로 저장."""
 from __future__ import annotations
 import os
 from data_loader import load_series

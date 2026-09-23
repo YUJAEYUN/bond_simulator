@@ -38,23 +38,12 @@
 
 이 프로젝트를 시작할 때는 “주식보다 수익률이 낮은 채권을 왜 섞어야 하는가?”가 질문이었다. 분석을 마친 뒤에는 “같은 위험을 감수할 때 어떤 조합이 더 효율적인가?”로 질문이 바뀌었다.
 
-## 다시 찾아볼 때
-
-- `src/bond_tr.py`: 국채 만기수익률로 채권 총수익 지수 재구성
-- `src/portfolio.py`: 주식·채권 비중과 리밸런싱별 포트폴리오 계산
-- `src/exit_loss_simulation.py`: 하락구간 손실과 회복기간 비교
-- `src/correlation_analysis.py`: 전체·위기일·연도별 상관관계 분석
-- `src/run_all.py`: Python 분석 전체 실행
-- `output/summary_report.md`: 분석 결과 요약
-- `simulator/insight-note.html`: 분석 배경과 결과를 읽는 설명문
-- `simulator/index.html`: 비중을 바꿔가며 결과를 확인하는 브라우저 시뮬레이터
-
 ## 실행
 
 ```bash
-python3 -m http.server 8080 --directory simulation/simulator
+python3 -m http.server 8080 --directory simulator
 ```
 
-브라우저에서 `http://localhost:8080`을 열면 시뮬레이터를 볼 수 있다. Python 분석을 다시 실행하려면 저장소 루트에서 `python3 simulation/src/run_all.py`를 실행한다.
+브라우저에서 `http://localhost:8080`을 열면 시뮬레이터를 볼 수 있다. Python 분석을 다시 실행하려면 저장소 루트에서 `python3 src/run_all.py`를 실행한다.
 
 채권 수익률은 만기수익률에서 재구성한 근사치이고, 배당·세금·거래비용은 반영하지 않았다. 따라서 결과는 특정 비중의 미래 성과가 아니라, 이 데이터와 조건에서 비중별 차이를 비교한 기록으로 해석한다.
