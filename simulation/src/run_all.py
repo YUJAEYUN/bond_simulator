@@ -241,7 +241,9 @@ def write_summary_report(h1_agg, h1_sig, corr_summary, corr_yearly, best_days):
     lines.append(f"- 하락구간 정의: 직전 고점 대비 {CONFIG['drawdown_threshold']*100:.0f}% 이하")
     lines.append(f"- 위기일 정의(H2): 주식 일별수익률 하위 {CONFIG['crisis_percentile']*100:.0f}%\n")
 
-    lines.append("## H1. 중도해지 손실 완화 가설\n")
+    lines.append("이 보고서는 Python의 하락구간·상관관계 분석이다. 브라우저의 CAGR/변동성 및 배수 비교와는 별도이며, 최적 비중을 결정하는 보고서는 아니다.\n")
+    lines.append("## H1. 하락구간의 손실과 회복기간 비교\n")
+    lines.append("주식 단독의 고점~회복일(미회복 시 자료 끝)을 같은 날짜 창으로 사용한다. 표의 MDD는 그 시작 가치 대비 최저 수익률이며, 각 혼합 포트폴리오 자체의 전체기간 최대낙폭과 다르다. 회복기간은 구간 저점부터 기준 가치 회복까지의 달력일이며, 미회복 구간은 평균에서 제외된다.\n")
     for pk in CONFIG["pairs"]:
         lines.append(f"### {CONFIG['pairs'][pk]['label']}\n")
         sub = h1_agg[(h1_agg["pair"] == pk) & (h1_agg["rebalance_freq"] == "annual")].sort_values("weight", ascending=False)
@@ -256,6 +258,10 @@ def write_summary_report(h1_agg, h1_sig, corr_summary, corr_yearly, best_days):
             f"{int(r['weight']*100)}% p={r['mdd_wilcoxon_p']:.4f}" for _, r in sig_sub.iterrows()
         )
         lines.append(f"- 100% 주식 대비 MDD 완화폭의 Wilcoxon signed-rank 검정(p-value): {sig_line}")
+        rec_line = ", ".join(
+            f"{int(r['weight']*100)}% p={r['recovery_wilcoxon_p']:.4f}" for _, r in sig_sub.iterrows()
+        )
+        lines.append(f"- 회복기간 차이의 Wilcoxon 검정(두 조합 모두 회복한 구간만): {rec_line}")
         all_sig = (sig_sub["mdd_wilcoxon_p"] < 0.05).all()
         lines.append(f"- 판정: {'**채택** (모든 비중에서 p<0.05로 유의미한 MDD 완화)' if all_sig else '**부분 채택/기각 재검토 필요**'}\n")
 
@@ -281,13 +287,13 @@ def write_summary_report(h1_agg, h1_sig, corr_summary, corr_yearly, best_days):
         if full_ok and crisis_ok:
             verdict = "**채택** (전체기간·위기구간 모두 통계적으로 유의한 음의 상관관계)"
         elif full_ok and not crisis_ok:
-            verdict = (f"**기각(위기구간 기준)** — 전체기간은 유의한 음의 상관관계이나, "
+            verdict = (f"**위기구간에서는 근거 불충분** — 전체기간은 유의한 음의 상관관계이나, "
                        f"정작 중요한 위기구간(주식 하락일)에서는 상관계수가 유의하지 않음(p={r['crisis_p']:.2f}). "
                        f"이 페어에서는 채권이 '하락장 방어' 역할을 한다고 통계적으로 단정할 수 없음")
         elif not full_ok and crisis_ok:
             verdict = "**부분 채택** (전체기간은 유의하지 않으나 위기구간에서는 유의한 음의 상관관계)"
         else:
-            verdict = "**기각** (전체기간·위기구간 모두 유의한 음의 상관관계 확인 안 됨)"
+            verdict = "**근거 불충분** (전체기간·위기구간 모두 유의한 음의 상관관계 확인 안 됨)"
         lines.append(f"- {label} 판정: {verdict}")
     lines.append("")
 
@@ -301,32 +307,24 @@ def write_summary_report(h1_agg, h1_sig, corr_summary, corr_yearly, best_days):
             lines.append(f"| {CONFIG['pairs'][pk]['label']} | {int(r['weight']*100)}% | {r['diff_pp']:.2f}pp |")
     lines.append("")
 
-    lines.append("## 종합 결론\n")
+    lines.append("## 결과를 읽는 기준\n")
     lines.append(
-        "- **H1(중도해지 손실 완화)은 두 페어 모두 강하게 채택.** 주식 비중이 낮아질수록 평균/최악 MDD와 회복 소요일이 "
-        "모든 비중 구간에서 통계적으로 유의하게(p<0.01) 감소했다. 즉 채권을 섞으면 '하락장 중 강제로 빠져야 했을 때'의 "
-        "손실이 실제로, 그리고 일관되게 완화된다.\n"
-    )
-    lines.append(
-        "- **H2(음의 상관관계)는 페어별로 결론이 갈린다.** S&P500/미국채10Y는 전체기간·위기구간 모두 유의한 음의 상관관계로 "
-        "'하락장 방어'가 통계적으로 뒷받침되지만, KOSPI/한국채10Y는 전체기간 상관계수가 -0.04로 사실상 0에 가깝고 "
-        "위기구간에서는 통계적 유의성이 없다(p=0.46) — 한국 국채는 미국 국채만큼의 '안전자산 플라이트' 효과가 "
-        "이 표본기간·10년물 기준으로는 뚜렷하게 나타나지 않았다.\n"
-    )
-    lines.append(
-        "- **종합**: 두 페어 모두 H1만으로 '채권 혼합이 장기투자 리스크 관리 도구로 유의미하다'는 결론이 성립한다. "
-        "다만 그 메커니즘은 페어마다 다르다 — 미국 국채는 낙폭 완화(H1) + 하락장 방어(H2) 둘 다 기여하지만, "
-        "한국 국채는 주로 '변동성이 낮아 포트폴리오 자체의 낙폭을 줄이는 효과'(H1)에서 오고, "
-        "'주식과 반대로 움직여서' 상쇄해주는 효과(H2)는 이 데이터에서 확인되지 않았다.\n"
+        "- 손실과 회복기간은 별도 결과다. 위 p값은 각각 주식 100%와 비교한 값이며, 인접 비중끼리의 비교가 아니다. "
+        "평균 회복기간이 짧더라도 모든 조합에서 통계적으로 유의한 것은 아니므로, 회복기간 검정값과 미회복 구간 수를 함께 확인한다.\n"
+        "- 상관계수의 유의성은 효과의 크기와 다르다. 0에 가까운 상관계수나 유의하지 않은 위기일 결과를 "
+        "주가 하락 시 채권이 반드시 오른다는 근거로 삼을 수 없다. 상관관계만으로 안전자산 선호 등 원인을 확정하지 않는다.\n"
+        "- 분석한 과거 구간의 결과이며 미래의 최적 비중이나 환매 손실을 보장하지 않는다. "
+        "Best-days 제거는 사후적으로 좋은 수익일을 놓치는 민감도 분석이며 실제 매매전략의 성과는 아니다.\n"
     )
     lines.append("## 방법론/한계 노트\n")
     lines.append(
-        "- 채권 TR은 원자료(가격+분배금)가 아닌 만기수익률(YTM) 시계열로부터, "
-        "연1회 이표를 가정한 constant-maturity par bond 재가격 모델로 재구성한 근사치입니다 "
-        "(`src/bond_tr.py` 참고). 절대 수익률 값보다 상대적 비교(비중 간 차이, 방향성)에 무게를 두고 해석해야 합니다.\n"
-        "- 환율 미고려 (S&P500/미국채는 달러, KOSPI/한국채는 원화 기준 독립 계산).\n"
-        "- 세전 기준.\n"
-        "- 리밸런싱 없음(buy&hold) 결과는 `exit_loss_simulation.csv`/`drawdown_by_weight.csv`의 rebalance_freq=none 행 참고.\n"
+        "- 채권 TR은 만기수익률(YTM)로부터 연 1회 이표·고정 10년 만기의 가상 채권을 재평가한 근사치다. "
+        "실제 채권 총수익지수와 대조하지 않았으므로, 근사 오차가 비중별 비교에 미치는 영향도 추가 확인이 필요하다.\n"
+        "- 주식은 원자료 등락률을 누적하며 배당을 별도로 추가하지 않는다. 배당 재투자를 포함한 총수익 비교로 해석하지 않는다.\n"
+        "- 환율·세금·거래비용과 추가 적립금은 반영하지 않는다. 미국은 달러, 한국은 원화 기준으로 각각 계산한다.\n"
+        "- 시장별로 공통 날짜를 사용하므로 비교기간이 다르다. 한국 비교에는 1997년 외환위기가 포함되지 않는다.\n"
+        "- p값은 다중 비교 보정을 하지 않은 값이다. 표본 구간 수와 시계열 의존성에 따른 한계를 고려한다.\n"
+        "- 리밸런싱 없음 결과는 `exit_loss_simulation.csv`/`drawdown_by_weight.csv`의 rebalance_freq=none 행을 참고한다.\n"
     )
 
     with open(os.path.join(OUT_DIR, "summary_report.md"), "w", encoding="utf-8") as f:

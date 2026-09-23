@@ -132,7 +132,7 @@ function rollingDrawdown(values) {
 
 const mean = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
 
-// ─── H3: 위험 대비 수익(변동성, 샤프비율) ───────────────────────────────────
+// ─── H3: CAGR/변동성 비교 (표준 샤프비율과 다름) ───────────────────────────────────
 function annualizedVol(returns) {
   const m = mean(returns);
   const variance = mean(returns.map(r => (r - m) ** 2));
@@ -562,7 +562,7 @@ function renderH3() {
   const colors = weights.map(w => CONFIG.gridColors[w]);
 
   charts.sharpeByWeight = renderBarChart('sharpeByWeightChart', charts.sharpeByWeight, labels,
-    weights.map(w => +sharpeGrid[w].sharpe.toFixed(2)), colors, '수익 ÷ 변동성 (위험 1단위당 버는 돈)');
+    weights.map(w => +sharpeGrid[w].sharpe.toFixed(2)), colors, 'CAGR ÷ 연환산 변동성 (표준 샤프비율 아님)');
 
   let bestW = weights[0];
   for (const w of weights) if (sharpeGrid[w].sharpe > sharpeGrid[bestW].sharpe) bestW = w;
@@ -577,17 +577,17 @@ function renderH3() {
       <div class="corr-box">
         <div class="lbl">100% 주식 (그대로)</div>
         <div class="val c-orange">${fmtPct(eq.cagr)}</div>
-        <div class="p">변동성 ${fmtPlainPct(eq.vol)} · 수익÷변동성 ${eq.sharpe.toFixed(2)}</div>
+        <div class="p">변동성 ${fmtPlainPct(eq.vol)} · CAGR/변동성 ${eq.sharpe.toFixed(2)}</div>
       </div>
       <div class="corr-box">
-        <div class="lbl tip" data-tip="지금 그리드(주식 100%~0%) 중 수익÷변동성이 가장 높은 조합입니다.">가장 효율적인 조합 (주식 ${Math.round(bestW * 100)}%)</div>
+        <div class="lbl tip" data-tip="현재 표본에서 주식 0·20·40·60·80·100% 중 CAGR/변동성이 가장 높은 조합입니다. 미래의 최적 비중을 뜻하지 않습니다.">비교한 비중 중 지표 최고 (주식 ${Math.round(bestW * 100)}%)</div>
         <div class="val c-blue">${fmtPct(best.cagr)}</div>
-        <div class="p">변동성 ${fmtPlainPct(best.vol)} · 수익÷변동성 ${best.sharpe.toFixed(2)}</div>
+        <div class="p">변동성 ${fmtPlainPct(best.vol)} · CAGR/변동성 ${best.sharpe.toFixed(2)}</div>
       </div>
       <div class="corr-box">
-        <div class="lbl tip" data-tip="위 조합에 빚을 내서(레버리지) ${lev.toFixed(2)}배를 걸어, 100% 주식과 같은 흔들림(변동성 ${fmtPlainPct(eq.vol)})까지 맞췄다고 가정했을 때의 이론상 기대수익입니다. 빌리는 데 드는 이자, 흔들림이 수익을 깎아먹는 효과, 폭락 시 강제 청산될 위험은 반영하지 않은 단순 계산치입니다.">레버리지로 주식과 같은 위험까지 올리면</div>
+        <div class="lbl tip" data-tip="주식 변동성 ÷ 혼합 변동성으로 얻은 ${lev.toFixed(2)}배를 혼합 CAGR에 곱한 값입니다. CAGR은 레버리지에 비례하지 않으므로 실제 레버리지 전략의 연복리 수익률로 해석할 수 없습니다. 일별 수익 경로와 차입비용 등을 반영한 별도 백테스트가 필요합니다.">변동성을 맞춘 단순 배수 예시</div>
         <div class="val ${leveredReturn > eq.cagr ? 'c-green' : 'c-red'}">${fmtPct(leveredReturn)}</div>
-        <div class="p">${lev.toFixed(2)}배 레버리지 가정 (이론상 근사치)</div>
+        <div class="p">CAGR × ${lev.toFixed(2)} · 레버리지 백테스트 결과 아님</div>
       </div>
     </div>
   `;
@@ -595,9 +595,9 @@ function renderH3() {
   document.getElementById('h3Verdict').innerHTML = `
     <div class="verdict ${leveredReturn > eq.cagr ? 'pass' : 'fail'}">
       ${leveredReturn > eq.cagr
-        ? `가장 효율적인 조합(주식 ${Math.round(bestW * 100)}%)은 100% 주식보다 덜 벌지만(${fmtPct(best.cagr)}), 같은 위험 수준까지 레버리지를 걸면 이론상 100% 주식(${fmtPct(eq.cagr)})보다 높은 ${fmtPct(leveredReturn)}을 기대할 수 있습니다 — "어떤 자산이 이기나"보다 "위험 대비 효율이 가장 좋은 조합을 찾고, 위험 수준은 레버리지로 조절하는" 접근이 이론상 더 유리하다는 뜻입니다.`
-        : `이 그리드 안에서는 레버리지를 감안해도 100% 주식이 가장 효율적이었습니다. 이 구간에서는 채권을 섞어서 얻는 효과보다 주식 자체의 수익력이 더 크게 작용했습니다.`}
-      실제로는 돈을 빌리는 데 드는 이자, 흔들림이 수익을 깎아먹는 효과, 주식-채권이 같이 무너질 위험이 있어 이 수치보다 낮게 나올 가능성이 높습니다.
+        ? `현재 표본과 여섯 비중 중에서는 주식 ${Math.round(bestW * 100)}% 조합의 CAGR/변동성이 가장 높았습니다. 이 조합의 CAGR은 ${fmtPct(best.cagr)}, 주식 단독은 ${fmtPct(eq.cagr)}입니다. 수익률의 크기와 변동성 대비 수익을 구분해 비교할 수 있습니다.`
+        : `현재 표본과 여섯 비중 중에서는 주식 100%의 CAGR/변동성이 가장 높았습니다. 다른 기간이나 비용 조건에서도 같은 결과가 나오는지는 별도로 확인해야 합니다.`}
+      위 배수 예시는 투자 규모를 조절한다는 생각을 설명하는 산술값입니다. 복리 효과·차입비용·강제청산을 반영한 성과가 아니며, 같은 변동성이 같은 최대손실을 뜻하지도 않습니다.
     </div>`;
 }
 

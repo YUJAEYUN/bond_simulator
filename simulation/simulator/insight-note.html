@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>채권, 오래 들고 있으면 정말 괜찮을까</title>
+<title>주식 수익률이 더 높은데, 채권을 왜 섞을까?</title>
 <style>
   :root {
     --paper: #f3f2ee;
@@ -183,187 +183,78 @@
     .sheet { padding: 40px 18px 72px; }
     .compare-row { grid-template-columns: 60px 1fr 58px; }
   }
+  a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 </style>
 </head>
 <body>
 <div class="sheet">
-
-  <div class="eyebrow">채권 노트 · 장기투자 관점 정리</div>
-  <h1>채권, 오래 들고 있으면<br>정말 괜찮을까</h1>
-  <p class="thesis">주식(지수)에 오래 투자하는 것과 비교해서, 채권이 어떤 성격을 가진 자산인지 쉬운 말로 정리했다.</p>
-
-  <div class="note">개인이 국채를 원물로 사기는 어려우니, <strong>채권 ETF에 적립식으로 오래 투자하면서 나오는 이자·분배금을 계속 재투자</strong>하는 상황을 가정했다. (실제 계산은 ETF의 실거래 가격이 아니라, 매일의 만기수익률로 "10년 만기를 계속 유지하는 채권"을 재구성한 근사치를 썼다 — 방향성과 상대적 비교에는 무리가 없지만 절대 수익률 값은 근사치임을 감안해야 한다.)</div>
-
+  <div class="eyebrow">주식·채권 혼합 분석 · 질문에서 결과까지</div>
+  <h1>주식 수익률이 더 높은데,<br>채권을 왜 섞을까?</h1>
+  <p class="thesis">주식과 채권을 나눠 담는다는 개념은 알고 있었다. 궁금했던 것은 그다음이었다. 장기 수익률이 더 높은 주식의 비중을 줄이면서, 채권을 넣어 얻는 이점은 무엇일까?</p>
+  <div class="note">부서 영업이사님이 자산배분 비중을 제안할 때 활용할 근거를 찾고자 시작한 분석이다. 아래 숫자는 저장소의 과거 데이터와 계산 가정에 따른 결과이며, 특정 비중의 미래 성과를 뜻하지 않는다. <a href="index.html">시뮬레이터에서 비교하기 →</a></div>
   <div class="tldr">
-    <div class="tldr-title">한눈에 정리</div>
+    <div class="tldr-title">분석하면서 바뀐 비교 기준</div>
     <ul>
-      <li>채권은 주식보다 <strong>덜 벌지만 덜 흔들린다.</strong></li>
-      <li>"얼마 벌었나"만 보면 안 되고, <strong>"흔들린 정도에 비해 얼마 벌었나"</strong>로 봐야 공정한 비교다.</li>
-      <li>주식과 채권은 완전히는 아니어도 <strong>어느 정도 반대로 움직인다</strong> — 그래서 섞으면 흔들림이 줄어든다.</li>
-      <li>이론적으로 가장 좋은 방법은 <strong>흔들림 대비 잘 버는 조합을 만들고, 빚(레버리지)으로 크기만 키우는 것</strong>이다.</li>
-      <li>다만 실제로는 빚에 이자와 위험이 따르기 때문에, 보통 사람에게는 <strong>채권을 적당히 섞은 분산 투자</strong>가 더 현실적인 답이다.</li>
+      <li>처음 질문은 <strong>“더 높은 수익률을 포기하면서 왜 채권을 넣는가?”</strong>였다.</li>
+      <li>샤프비율을 접하며 <strong>수익률과 함께 그 수익을 얻는 동안 감수한 변동성</strong>을 보기 시작했다.</li>
+      <li>이 표본에서는 혼합의 수익률이 낮아져도 변동성은 더 크게 줄어드는 구간이 있었다.</li>
+      <li>다만 현재 계산은 표준 샤프비율이 아닌 <strong>CAGR/변동성</strong>이며, 레버리지 비교도 단순 산술 예시다.</li>
     </ul>
   </div>
-
   <div class="section">
     <div class="section-num">1</div>
-    <h2>채권과 주식은 흔들리는 이유부터 다르다</h2>
-    <p>채권 가격은 거의 <strong>금리</strong> 하나로 움직인다. 금리가 오르면 채권값은 내려가고, 내리면 오른다. 반면 주가는 회사 실적, 사람들의 기대, 경기, 그날의 심리까지 여러 가지가 한꺼번에 반영된다. 움직이는 원인의 개수 자체가 다르기 때문에, 주가가 채권보다 훨씬 크게 흔들린다.</p>
-
-    <div class="compare">
-      <div class="compare-row">
-        <div class="compare-label stock">주식</div>
-        <div class="compare-track"><div class="compare-fill stock" style="width:100%"></div></div>
-        <div class="compare-value">+8.55%</div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-label bond">채권</div>
-        <div class="compare-track"><div class="compare-fill bond" style="width:45.6%"></div></div>
-        <div class="compare-value">+3.90%</div>
-      </div>
-    </div>
-    <div class="compare-caption">지난 30년, 매년 평균 번 돈 (S&amp;P500 / 미국채 10년물 기준)</div>
-
-    <div class="compare">
-      <div class="compare-row">
-        <div class="compare-label stock">주식</div>
-        <div class="compare-track"><div class="compare-fill stock" style="width:100%"></div></div>
-        <div class="compare-value">-56.81%</div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-label bond">채권</div>
-        <div class="compare-track"><div class="compare-fill bond" style="width:47.6%"></div></div>
-        <div class="compare-value">-27.03%</div>
-      </div>
-    </div>
-    <div class="compare-caption">각자 자기 역사상 가장 많이 떨어졌을 때의 낙폭 — 주식은 2007.10~2009.03(금융위기), 채권은 2020.08~2023.10(금리 급등기). 서로 다른 시기다.</div>
-    <div class="note">주식이 저 -56.81%를 겪던 2007~2009년 그 기간 동안 채권은 겨우 -0.22%만 떨어졌다. (주식 회복까지 4년, 채권은 아직 미회복.)</div>
+    <h2>먼저, 무엇을 ‘좋은 비중’이라고 할 것인가</h2>
+    <p>수익률만 기준으로 삼으면 주식 단독이 유리할 수 있다. 하지만 그 결과만으로는 채권 편입의 이점을 설명할 수 없다. 그래서 질문을 나눴다. 채권을 섞으면 하락장에서 손실이 얼마나 줄어드는가? 두 자산은 실제로 반대로 움직이는가? 수익률이 줄어드는 폭보다 변동성이 줄어드는 폭이 더 큰 조합이 있는가?</p>
+    <p>분석 과정에서 알게 된 샤프비율은 이 마지막 질문을 구체화하는 계기가 됐다. <strong>얼마나 벌었는지와, 그 과정에서 얼마나 큰 변동성을 감수했는지를 함께 비교</strong>하는 것이다.</p>
   </div>
-
   <div class="section">
     <div class="section-num">2</div>
-    <h2>"얼마 벌었나"만 보면 착각하기 쉽다</h2>
-    <p>30년을 놓고 보면 주식이 훨씬 많이 벌었다. 그런데 이것만 보고 "그럼 무조건 주식이 정답"이라고 하면 안 되는 이유가 있다.</p>
-    <p>돈은 벌 때보다 <strong>잃을 때 회복하기가 더 어렵다.</strong> 100만원이 반토막 나서 50만원이 되면(-50%), 다시 100만원으로 돌아가려면 50만원에서 +100%를 벌어야 한다. 떨어진 비율보다 회복해야 할 비율이 항상 더 크다.</p>
-    <p>그래서 <strong>"평균 수익률"도 어떻게 계산하느냐에 따라 완전히 다른 얘기가 된다.</strong> 100만원이 첫해 -50%, 다음해 +100%가 됐다고 하자. 계산해보면 50만원 → 100만원, 정확히 원금 그대로다. 실질 연평균 수익률은 0%인 셈이다. 그런데 이 두 수익률을 그냥 산술평균([-50%+100%]÷2)으로 계산하면 <strong>+25%</strong>가 나온다 — 실제로는 원금 그대로인데, 계산법 때문에 25%를 번 것처럼 착시가 생긴다. 이렇게 "실제로 복리로 불어난 진짜 비율"을 계산하는 방법을 <strong>기하평균</strong>이라 하고, 흔들림이 큰 자산일수록 산술평균과 기하평균의 차이가 크게 벌어진다. 그래서 장기투자의 진짜 성적표는 산술평균이 아니라 기하평균(=CAGR, 연평균 복리 수익률)으로 봐야 한다.</p>
-    <p>그래서 크게 흔들리는 자산은, 평균적으로 버는 돈이 같아 보여도 실제로 손에 남는 돈은 더 적어질 수 있다.</p>
+    <h2>가지고 있는 금리 자료를 그대로 수익률로 쓸 수는 없었다</h2>
+    <p>원자료는 S&amp;P500·KOSPI 지수와 미국·한국 10년물 국채의 만기수익률이다. 채권의 만기수익률은 보유기간의 투자수익률과 다르다. 그래서 전일 금리를 표면금리로 둔 가상 채권을 당일 금리로 다시 평가하고, 경과일 이자를 더해 채권 총수익을 근사했다.</p>
+    <p>그다음 두 자산의 공통 날짜를 맞추고, 시작자금 100을 주식 0·20·40·60·80·100%로 나눠 연 1회 리밸런싱했다. 미국 비교기간은 1996-01-02~2026-05-26, 한국은 2000-10-26~2026-05-27이다.</p>
+    <div class="note">실제 ETF 투자나 적립식 투자 결과는 아니다. 주식 배당을 별도로 더하지 않았고, 채권은 연 1회 이표·고정 10년 만기의 근사 모델이다. 환율·세금·거래비용도 제외했다. 두 자산의 수익 구성과 근사 오차를 함께 고려해야 한다.</div>
   </div>
-
   <div class="section">
     <div class="section-num">3</div>
-    <h2>그럼 "흔들리는 만큼"을 맞춰서 다시 비교하면?</h2>
-    <p>채권은 주식에 비해 잘 안 흔들리는 자산이니 공정하지 않은 비교일 수 있다. 그래서 채권에 빚(레버리지)을 걸어 <strong>주식과 똑같은 크기로 흔들리도록 맞춘 다음</strong> 다시 비교해봤다. (여기서는 빚에 붙는 이자·수수료는 아직 빼지 않았다 — 실제로는 이보다 결과가 더 나쁠 수 있다.)</p>
-    <div class="note">여기서부터 쓰는 "번 돈 ÷ 흔들린 정도"라는 숫자는 금융에서 <strong>샤프비율(Sharpe Ratio)</strong>이라 부르는 값이다. 정확히는 (수익률 − 무위험수익률) ÷ 변동성인데, 여기서는 무위험수익률을 0으로 두고 단순화했다.</div>
-
+    <h2>수익률은 낮아졌지만, 변동성은 더 크게 줄었다</h2>
+    <p>현재 미국 데이터에서 주식 단독의 연복리 수익률(CAGR)은 <strong>8.55%</strong>, 주식 40%·채권 60% 조합은 <strong>6.27%</strong>다. 수익률만 보면 주식 단독이 높다. 그런데 연환산 변동성은 각각 <strong>19.08%</strong>와 <strong>7.41%</strong>였다.</p>
     <div class="compare">
-      <div class="compare-row">
-        <div class="compare-label stock">S&amp;P500</div>
-        <div class="compare-track"><div class="compare-fill stock" style="width:99.3%"></div></div>
-        <div class="compare-value">0.448</div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-label bond">미국채(레버리지)</div>
-        <div class="compare-track"><div class="compare-fill bond" style="width:100%"></div></div>
-        <div class="compare-value">0.451</div>
-      </div>
+      <div class="compare-row"><div class="compare-label stock">주식 100%</div><div class="compare-track"><div class="compare-fill stock" style="width:52.9%"></div></div><div class="compare-value">0.448</div></div>
+      <div class="compare-row"><div class="compare-label bond">주식 40%</div><div class="compare-track"><div class="compare-fill bond" style="width:100%"></div></div><div class="compare-value">0.847</div></div>
     </div>
-    <div class="compare-caption">샤프비율 — 미국채를 주식과 같은 흔들림까지 레버리지 걸면 거의 동률</div>
-
-    <div class="compare">
-      <div class="compare-row">
-        <div class="compare-label stock">KOSPI</div>
-        <div class="compare-track"><div class="compare-fill stock" style="width:100%"></div></div>
-        <div class="compare-value">0.394</div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-label bond">한국채(레버리지)</div>
-        <div class="compare-track"><div class="compare-fill bond" style="width:79.2%"></div></div>
-        <div class="compare-value">0.312</div>
-      </div>
-    </div>
-    <div class="compare-caption">한국은 채권에 레버리지를 걸어 흔들림을 맞춰도 KOSPI를 따라가지 못한다</div>
-    <div class="note">한국채 데이터는 2000년대 초부터만 있어서, 위 KOSPI 숫자도 그 이후(2000~2026) 구간만 쓴 것이다 — 1997년 외환위기(당시 -68% 폭락)는 이 비교에서 빠져 있다.</div>
-
-    <p><strong>즉 채권 혼자서는 (레버리지를 걸어도) 주식을 이기지 못한다</strong> — 미국은 거의 같은 수준까지 따라붙지만, 한국은 확실히 못 따라간다. "그럼 채권은 장기투자로 주식보다 안 좋은 자산"이라고 결론짓기 쉬운데, 둘을 <strong>섞어서</strong> 비교하면 얘기가 완전히 달라진다.</p>
+    <div class="compare-caption">CAGR ÷ 연환산 변동성 · S&amp;P500/미국채 · 연 1회 리밸런싱 · 주식 40%의 나머지 60%는 채권</div>
+    <p>주식 40% 조합은 수익률이 낮아지는 것보다 변동성이 줄어드는 비율이 더 컸다. 따라서 이 지표로는 혼합이 더 높게 평가된다. <strong>수익률의 크기만 보던 때에는 드러나지 않았던 채권 편입의 이점</strong>이다.</p>
+    <div class="note">이 수치를 표준 샤프비율이라고 부르면 부정확하다. 현재 코드는 평균 초과수익률 대신 CAGR을 변동성으로 나눈다. 샤프비율을 공부하며 얻은 관점과 실제 구현된 지표는 구분한다. 주식 40%는 검사한 여섯 비중 중 가장 높았다는 뜻이며, 미래의 최적 비중을 뜻하지 않는다.</div>
   </div>
-
   <div class="section">
     <div class="section-num">4</div>
-    <h2>진짜 비교 기준은 "번 돈 ÷ 흔들린 정도"</h2>
-    <p>수익률만 보지 말고, 그 수익을 벌기 위해 얼마나 크게 흔들렸는지도 같이 봐야 공정한 비교가 된다. 번 돈을 흔들린 정도로 나눈 값이 클수록, 같은 위험을 지고 더 효율적으로 번 것이다. (3번에서 쓴 샤프비율과 같은 값이다.)</p>
-
-    <div class="compare">
-      <div class="compare-row">
-        <div class="compare-label stock">주식 100%</div>
-        <div class="compare-track"><div class="compare-fill stock" style="width:55.4%"></div></div>
-        <div class="compare-value">0.448</div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-label bond">주식 40%</div>
-        <div class="compare-track"><div class="compare-fill bond" style="width:100%"></div></div>
-        <div class="compare-value">0.808</div>
-      </div>
-    </div>
-    <div class="compare-caption">샤프비율 — 주식을 40%만 남기고 채권을 섞은 조합이 거의 2배 더 효율적</div>
-
-    <p>3번에서 "채권은 혼자서는 못 이긴다"고 했는데, 왜 섞으면 갑자기 결과가 좋아질까? <strong>번 돈(기대수익)과 흔들림(변동성)이 섞이는 방식 자체가 다르기 때문이다.</strong> 번 돈은 "주식 비중만큼 + 채권 비중만큼"처럼 정직하게 그대로 더해진다. 그런데 흔들림은 그렇게 단순하게 더해지지 않고, <strong>각 비중을 제곱해서 계산</strong>한다. 그래서 둘이 완전히 같은 방향으로만 움직이는 게 아니라면(반대로 움직일수록 더 크게), 섞었을 때의 흔들림은 늘 "단순히 평균 낸 것"보다 더 많이 줄어든다. 번 돈은 정직하게 줄어드는데 흔들림은 그보다 더 크게 줄어드는 구간이 생기고, 그 구간에서 "번 돈 ÷ 흔들림"이 오히려 좋아지는 것이다.</p>
+    <h2>‘주식과 채권은 반대로 움직인다’도 확인할 가정이었다</h2>
+    <p>저장된 Python 분석에서 미국의 전체기간 상관계수는 <strong>-0.280</strong>, 한국은 <strong>-0.039</strong>였다. 주식 수익률 하위 5%인 날만 보면 미국은 약 -0.310, 한국은 약 -0.043이며, 한국의 상관관계는 통계적으로 유의하지 않았다(p≈0.460).</p>
+    <p>따라서 ‘채권은 주가가 떨어질 때 반드시 오른다’고 설명할 수는 없다. 두 자산이 함께 움직이는 정도는 시장과 시기에 따라 달랐다. 상관관계가 낮으면 혼합의 변동성을 줄이는 데 도움이 될 수 있지만, 항상 음수일 필요는 없으며 손실 방어가 보장되는 것도 아니다.</p>
+    <div class="note">상관계수는 함께 움직인 정도를 보여준다. 이 결과만으로 안전자산 선호 등 움직임의 원인까지 확인한 것은 아니다.</div>
   </div>
-
   <div class="section">
     <div class="section-num">5</div>
-    <h2>채권을 섞으면 왜 흔들림이 줄어드나</h2>
-    <p>경기가 나빠지고 주가가 떨어지는 시기엔, 사람들이 안전한 자산을 찾아 채권으로 몰리는 경우가 많다. 그러면 채권값은 오히려 오른다. 그래서 주식이 떨어질 때 채권이 그 충격을 어느 정도 상쇄해준다.</p>
-    <p>실제로 이 둘의 관계는 <strong>-0.28</strong> 정도다. 완전히 반대는 아니지만, 약하게 반대로 움직이는 편이다.</p>
-    <div class="note">이 관계는 시대마다 조금씩 바뀐다. 물가가 갑자기 크게 뛰는 시기엔 오히려 둘 다 같이 떨어지기도 한다. 2022년이 그런 해였다.</div>
+    <h2>변동성만으로 놓치는 손실과 회복도 따로 봤다</h2>
+    <p>100만원이 50만원으로 줄면 원금을 회복하려면 100% 수익이 필요하다. 장기투자에서는 마지막 수익률뿐 아니라 중간에 얼마나 잃고 얼마나 오래 회복을 기다렸는지도 중요하다.</p>
+    <p>저장된 Python 결과에서 미국 주식 단독의 최악 구간 손실은 <strong>-56.8%</strong>, 주식 40% 조합은 <strong>-20.4%</strong>였다. 다만 이는 주식의 하락구간을 기준으로 같은 날짜 창에서 비교한 값이며, 각 포트폴리오 자체의 전체기간 최대낙폭과는 정의가 다르다.</p>
+    <p>평균 회복기간도 짧아졌지만, 모든 비중에서 통계적으로 유의한 차이는 아니었다. 예를 들어 미국 주식 40% 조합의 회복기간 비교 p값은 약 <strong>0.131</strong>이다. 손실 완화의 근거와 회복 속도의 근거는 나눠 읽어야 한다.</p>
+    <div class="note">회복기간은 구간 저점부터 기준 가치를 회복할 때까지의 달력일이다. 미회복 구간은 평균 회복기간에서 빠지므로, 회복된 구간 수를 함께 확인해야 한다.</div>
   </div>
-
   <div class="section">
     <div class="section-num">6</div>
-    <h2>이론적으로 가장 좋은 방법</h2>
-    <p>흔들림 대비 가장 잘 버는 조합(4번에서 찾은 것)을 만들어두고, 그 조합 전체에 <strong>빚(레버리지)</strong>을 걸어 원하는 만큼 위험 크기를 키우는 것 — 이게 이론적으로 가장 좋은 방법이다.</p>
-    <p>왜 "이론적으로 가장 좋은"이라고 하냐면, 흔히 말하는 <strong>"고위험 고수익"</strong>도 결국 변수는 위험(흔들림)과 수익률 두 가지뿐이고, 이 둘의 관계를 하나의 숫자로 압축한 게 바로 4번의 샤프비율(수익률 ÷ 흔들림)이기 때문이다. 레버리지는 이 비율 자체를 바꾸지 않고 위험과 수익을 같은 배수로 키우기만 한다. 그러니 샤프비율이 가장 높은 조합을 먼저 찾고, 원하는 위험 수준까지 레버리지로 크기만 맞추는 것 — 이게 "위험 대비 수익"이라는 기준으로 볼 때 도달할 수 있는 가장 좋은 지점이 된다.</p>
-
-    <div class="compare">
-      <div class="compare-row">
-        <div class="compare-label stock">주식 100%</div>
-        <div class="compare-track"><div class="compare-fill stock" style="width:56.3%"></div></div>
-        <div class="compare-value">+8.55%</div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-label bond">빚 낸 조합</div>
-        <div class="compare-track"><div class="compare-fill bond" style="width:100%"></div></div>
-        <div class="compare-value">+15.18%</div>
-      </div>
-    </div>
-    <div class="compare-caption">"흔들림 대비 잘 버는 조합"에 빚을 걸어, 주식 100%와 같은 흔들림 크기로 맞췄을 때의 이론상 기대치</div>
-
-    <p>실제로 이런 논리로 만들어진 상품도 있다. 채권을 섞은 조합에 미리 빚(레버리지)이 걸려 있어서, 주식만 담은 것과 비슷한 크기로 흔들리면서 더 버는 걸 노리는 상품들이다. 대표적으로 미국의 <strong>NTSX</strong>(WisdomTree US Efficient Core — 주식 90% + 채권선물로 60%를 얹어 실질 150% 노출), <strong>RSSB</strong>(Return Stacked Global Stocks &amp; Bonds — 주식 100% + 국채 100%를 그대로 겹쳐 쌓는 방식) 같은 ETF가 있다.</p>
+    <h2>변동성을 맞춰보자는 생각은 레버리지 비교로 이어졌다</h2>
+    <p>혼합의 변동성이 낮다면, 투자 규모를 늘려 주식 단독과 같은 변동성 수준에서 비교할 수 있지 않을까? 이 질문을 보기 위해 현재 화면은 <strong>주식 단독 변동성 ÷ 혼합 변동성</strong>을 배수로 계산하고, 혼합 CAGR에 곱한다.</p>
+    <p>미국 주식 40% 조합에서는 약 <strong>2.58배</strong>이고, CAGR에 단순히 곱한 값은 약 <strong>16.16%</strong>다. 이것은 비교 방식을 설명하는 산술 예시이며, 레버리지 전략으로 실제 달성한 연복리 수익률이 아니다.</p>
+    <div class="note">CAGR은 레버리지 배수에 비례하지 않는다. 일별 수익 경로와 복리 효과, 차입비용, 리밸런싱, 손실 시 운용 제약을 반영해 다시 계산해야 한다. 변동성을 맞추더라도 최대낙폭이나 강제청산 위험까지 같아지지는 않는다.</div>
   </div>
-
   <div class="section">
     <div class="section-num">7</div>
-    <h2>그런데 현실에서는</h2>
-    <p>위 계산은 빚을 공짜로 빌린다고 가정한 것이다. 실제로는 그렇지 않다.</p>
-    <ul>
-      <li><strong>빚에는 이자가 붙는다.</strong> 계산했던 수익에서 이자만큼 깎인다.</li>
-      <li><strong>흔들림이 큰 상태에서 빚을 쓰면, 손실도 더 크게 증폭된다.</strong></li>
-      <li><strong>크게 떨어지면 빚을 강제로 갚아야 할 수도 있다</strong> — 하필 가장 안 좋은 시점에 팔게 될 위험이다.</li>
-      <li><strong>채권을 회사채나 정크본드로 바꿔서 더 높은 수익을 노리면</strong>, 위기 때 오히려 주식과 같이 떨어지는 성격으로 바뀔 수 있다. 애초에 채권을 섞은 이유(4번)가 사라지는 셈이다.</li>
-      <li><strong>해외 채권은 환율 변동이 섞인다.</strong> 채권 자체의 흔들림보다 환율의 흔들림이 더 커지는 경우도 많다.</li>
-    </ul>
+    <h2>이번 분석으로 말할 수 있는 것</h2>
+    <p>이번 표본에서는 채권을 넣으면 수익률이 낮아지는 대신 변동성과 일부 하락구간 손실이 줄었다. 검사한 비중 중에는 수익률 감소보다 변동성 감소가 더 커서 CAGR/변동성이 높아지는 조합이 있었다. ‘장기 수익률이 낮으니 채권은 불필요하다’는 생각을 다시 살펴볼 근거다.</p>
+    <p>반면 ‘주식 40%가 누구에게나 최선’이나 ‘레버리지를 쓰면 연 16.16%를 얻는다’는 결론은 이 분석에서 나오지 않는다. 과거 표본에서 비중을 고르고 같은 표본에서 평가했기 때문에, 기간을 바꿔도 결과가 유지되는지 확인해야 한다.</p>
   </div>
-
-  <div class="section">
-    <div class="section-num">8</div>
-    <h2>적립식으로 오래 투자하는 사람에게, 실질적인 결론</h2>
-    <p>이론만 따지면, 나이가 젊을수록(투자 기간이 길수록) 분산된 포트폴리오에 레버리지를 걸고, 나이가 들수록 그 레버리지를 줄여나가는 게 가장 효율적이다. 앞으로 벌어들일 월급 같은 미래 소득 자체가, 채권처럼 안정적인 자산 역할을 대신해주기 때문이다.</p>
-    <p>다만 보통 사람은 싼 이자로 빚을 구하기 어렵고, 강제로 손절당할 위험도 있다. 그래서 전문가들이 실제로 가장 많이 권하는 방법은 더 단순하다: <strong>빚 없이, 여러 나라 주식과 채권에 널리 나눠 담아 꾸준히 적립하고, 나이가 들수록 채권 비중을 서서히 늘려가는 것.</strong></p>
-  </div>
-
-  <div class="closing">
-    <p>채권은 <strong>"더 많이 버는 자산"이 아니라 "덜 흔들리게 도와주는 자산"</strong>이다. 그 흔들림을 줄이는 게 왜 중요한지 알면, 채권을 얼마나 섞을지는 결국 각자의 투자 기간과 마음의 크기에 달린 문제가 된다.</p>
-  </div>
-
+  <div class="closing"><p>이 프로젝트에서 바뀐 것은 ‘좋은 비중’을 묻는 방식이었다. <strong>수익률이 높은 자산을 고르는 데서, 수익과 변동성·손실 경로를 함께 비교하는 쪽으로</strong> 판단 기준이 넓어졌다.</p></div>
 </div>
 </body>
 </html>
