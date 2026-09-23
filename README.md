@@ -8,6 +8,7 @@ Bond Simulator는 주식과 채권의 장기 투자 성과와 위험을 비교�
 
 ## 분석 내용
 
+- 주식 수익률 상위일(Best Days) 제거에 따른 장기 수익률 변화 분석
 - 국채 만기수익률을 이용한 채권 총수익 지수 재구성
 - 연 1회 리밸런싱 기준의 주식·채권 비중별 포트폴리오 계산
 - 하락구간의 낙폭·회복기간 분석
@@ -36,8 +37,8 @@ Bond Simulator는 주식과 채권의 장기 투자 성과와 위험을 비교�
 | `src/` | 분석 코드 |
 | `data/` | 입력 데이터 |
 | `output/` | 분석 결과 |
-| `simulator/` | 브라우저 시뮬레이터 |
-| `web/` | Best Days 제거 시뮬레이터 |
+| `asset-allocation/` | 주식·채권 자산배분 시뮬레이터 |
+| `best-days/` | Best Days 제거 시뮬레이터 |
 | `docs/research-process.md` | PAAR 경험 기록 |
 
 ## 실행
